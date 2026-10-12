@@ -1,0 +1,20 @@
+(version 1)
+
+# 230 V nets: L_IN (before fuse), L_F (after fuse), N, AUTO (selector 14 -> relay), A1 (relay -> contactor coil)
+
+(rule "230 V tracks"
+  (condition "A.NetName == 'L_IN' || A.NetName == 'L_F' || A.NetName == 'N' || A.NetName == 'AUTO' || A.NetName == 'A1'")
+  (constraint track_width (min 1mm)))
+
+(rule "230 V to 230 V"
+  (condition "(A.NetName == 'L_IN' || A.NetName == 'L_F' || A.NetName == 'N' || A.NetName == 'AUTO' || A.NetName == 'A1') && (B.NetName == 'L_IN' || B.NetName == 'L_F' || B.NetName == 'N' || B.NetName == 'AUTO' || B.NetName == 'A1')")
+  (constraint clearance (min 2mm)))
+
+(rule "230 V to low voltage"
+  (condition "(A.NetName == 'L_IN' || A.NetName == 'L_F' || A.NetName == 'N' || A.NetName == 'AUTO' || A.NetName == 'A1') && B.NetName != 'L_IN' && B.NetName != 'L_F' && B.NetName != 'N' && B.NetName != 'AUTO' && B.NetName != 'A1'")
+  (constraint clearance (min 6mm))
+  (constraint creepage (min 6mm)))
+
+(rule "230 V to board edge"
+  (condition "A.NetName == 'L_IN' || A.NetName == 'L_F' || A.NetName == 'N' || A.NetName == 'AUTO' || A.NetName == 'A1'")
+  (constraint edge_clearance (min 2mm)))

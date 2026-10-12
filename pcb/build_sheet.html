@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Tank Pump Controller PCB - Build Sheet</title>
+<style>
+  @page { size: A4; margin: 12mm 13mm 13mm 13mm; }
+  * { box-sizing: border-box; }
+  body { font-family: "Segoe UI", Arial, sans-serif; font-size: 9.6pt; color: #1f2933; line-height: 1.38; margin: 0; }
+  h1 { font-size: 19pt; margin: 0 0 2px; color: #102a43; }
+  h2 { font-size: 12.5pt; color: #102a43; border-bottom: 2px solid #1d70b8; padding-bottom: 2px; margin: 14px 0 6px; page-break-after: avoid; }
+  h3 { font-size: 10.5pt; color: #1d70b8; margin: 9px 0 3px; page-break-after: avoid; }
+  p { margin: 4px 0; }
+  ul, ol { margin: 3px 0 5px 0; padding-left: 20px; }
+  li { margin: 2px 0; }
+  .sub { color: #52606d; font-size: 10.5pt; margin-bottom: 8px; }
+  table { border-collapse: collapse; width: 100%; font-size: 8.7pt; margin: 5px 0 7px; }
+  th, td { border: 1px solid #cbd2d9; padding: 2px 5px; vertical-align: top; text-align: left; }
+  th { background: #e9eff5; }
+  tr { page-break-inside: avoid; }
+  td.n, th.n { text-align: right; white-space: nowrap; }
+  tr.sum td { background: #f5f7fa; font-weight: 600; }
+  tr.grp td { background: #fafbfc; font-weight: 700; }
+  figure { margin: 6px 0 10px; page-break-inside: avoid; }
+  figcaption { font-size: 8.5pt; color: #52606d; text-align: center; margin-top: 3px; }
+  img { width: 100%; display: block; border: 1px solid #d9e2ec; }
+  svg { width: 100%; height: auto; display: block; }
+  .two { display: flex; gap: 10px; }
+  .two > div { flex: 1; }
+  .note, .warn, .ok { padding: 5px 9px; margin: 6px 0; page-break-inside: avoid; }
+  .note { border-left: 4px solid #1d70b8; background: #eef6fc; }
+  .warn { border-left: 4px solid #c62828; background: #fdeeee; }
+  .ok { border-left: 4px solid #2e7d32; background: #edf7ee; }
+  .pb { page-break-before: always; }
+  code { font-family: Consolas, monospace; font-size: 8.6pt; background: #f0f4f8; padding: 0 3px; }
+  svg text { font-family: "Segoe UI", Arial, sans-serif; }
+  .ln { stroke: #3e4c59; stroke-width: 1.5; fill: none; }
+  .hv { stroke: #c62828; stroke-width: 1.8; fill: none; }
+  .bx { fill: #fff; stroke: #3e4c59; stroke-width: 1.4; }
+  .dash { fill: none; stroke: #9aa5b1; stroke-width: 1.2; stroke-dasharray: 5 4; }
+  .tm { fill: #fff; stroke: #1d70b8; stroke-width: 1.8; }
+  .dot { fill: #3e4c59; }
+  .t { font-size: 11px; font-weight: 600; fill: #1f2933; }
+  .s { font-size: 9.5px; fill: #52606d; }
+  .tl { font-size: 9.5px; font-weight: 700; fill: #1d70b8; }
+  .c { text-anchor: middle; }
+  .e { text-anchor: end; }
+</style>
+</head>
+<body>
+
+<h1>Tank Pump Controller PCB v1.0</h1>
+<div class="sub">Build sheet &middot; 100 &times; 98 mm, 2 layers &middot; plugs into the wiring of the main guide (Figure 6) &middot; ESP32 DevKit V1 30-pin</div>
+
+<div class="two">
+  <div><figure><img src="out/render_top.png" alt="Board top view"><figcaption>Top view. 230 V parts above the dashed line, 5 V / 3.3 V below it.</figcaption></figure></div>
+  <div><figure><img src="out/render_iso.png" alt="Board 3D view"><figcaption>3D view with all parts fitted (ESP32 not shown).</figcaption></figure></div>
+</div>
+
+<p>The board carries everything that was loose wiring in the main guide: fuse F1, a surge absorber, the HLK-5M05, the relay that switches the contactor coil, the ESP32 sockets and the sensor terminal. You only connect wires to its screw terminals. <b>Pump current never goes through the board:</b> the supply cable, the contactor main contacts and the pump cable stay exactly as in the guide.</p>
+
+<div class="note"><b>Isolation.</b> 230 V copper is kept at least 6.0 mm from all low-voltage copper on both layers (checked after the ground fill), with a milled slot under the relay between its contacts and its coil. The HLK-5M05 and the relay are the only parts that bridge the gap, and both are rated for it.</div>
+
+<h2>1. What connects to each board terminal</h2>
+<table>
+  <tr><th style="width:15%">Terminal</th><th style="width:9%">Pin</th><th style="width:34%">Wire goes to</th><th>Wire / notes</th></tr>
+  <tr class="grp"><td colspan="4">230 V terminals (top edge)</td></tr>
+  <tr><td rowspan="2">MAINS IN (J1)</td><td>L</td><td>DIN <b>L</b> terminal (the one fed from the DB MCB)</td><td>1.0 mm&sup2; brown. Replaces guide wires 4 and 5.</td></tr>
+  <tr><td>N</td><td>DIN <b>N</b> terminal</td><td>1.0 mm&sup2; blue. Replaces guide wire 6.</td></tr>
+  <tr><td rowspan="3">SELECTOR S1 (J2)</td><td>13</td><td>S1 terminal <b>13</b>, plus a short link from S1 13 to S1 <b>23</b> on the switch</td><td>0.75 mm&sup2; brown. The fused live feed to both selector contacts (guide wire 13 and link J1).</td></tr>
+  <tr><td>14</td><td>S1 terminal <b>14</b> (AUTO out)</td><td>0.75 mm&sup2; brown (guide wire 14)</td></tr>
+  <tr><td>24</td><td>S1 terminal <b>24</b> (MAN out)</td><td>0.75 mm&sup2; brown (guide wire 16)</td></tr>
+  <tr><td rowspan="2">KM COIL (J3)</td><td>A1</td><td>Contactor coil <b>A1</b></td><td>0.75 mm&sup2; brown (guide wire 15)</td></tr>
+  <tr><td>A2</td><td>Contactor coil <b>A2</b></td><td>0.75 mm&sup2; blue. Replaces guide wire 12 (the KM 3/L2 to A2 link).</td></tr>
+  <tr><td rowspan="2">LAMP H1 (J4)</td><td>X1</td><td>Lamp <b>X1</b></td><td>0.75 mm&sup2; brown. Replaces link J2 on the door.</td></tr>
+  <tr><td>X2</td><td>Lamp <b>X2</b></td><td>0.75 mm&sup2; blue (guide wire 17)</td></tr>
+  <tr class="grp"><td colspan="4">Low-voltage terminal (bottom left), CAT6 from the tank</td></tr>
+  <tr><td rowspan="4">SENSOR (J5)</td><td>3V3</td><td>Sensor red</td><td>CAT6 orange + white/orange</td></tr>
+  <tr><td>TX</td><td>Sensor white</td><td>CAT6 green. Goes to GPIO16 through R3 on the board.</td></tr>
+  <tr><td>MODE</td><td>Sensor yellow</td><td>CAT6 blue. Already tied to GND on the board, so no link wire is needed.</td></tr>
+  <tr><td>GND</td><td>Sensor black</td><td>CAT6 brown + white/brown + white/green. White/blue stays spare.</td></tr>
+</table>
+<p><b>Unchanged from the guide:</b> wires 1&ndash;3 (DB to the DIN terminals), 7&ndash;8 (DIN L and N to KM 1/L1 and 3/L2), 9&ndash;11 (pump cable and earth). <b>No longer needed:</b> the DIN fuse F1, the relay module, the perfboard and wires 18&ndash;27; the board does all of that. Strip 8 mm, use ferrules on stranded wire, and never put two wires under one board screw.</p>
+
+<h2>2. Circuit on the board</h2>
+<figure>
+<svg viewBox="0 0 760 200" xmlns="http://www.w3.org/2000/svg">
+  <text x="6" y="12" class="t">(a) 230 V side</text>
+  <!-- L and fuse -->
+  <circle cx="30" cy="45" r="5" class="tm"/><text x="30" y="32" class="tl c">J1 L</text>
+  <path d="M35 45 H80 M140 45 H380" class="hv"/>
+  <rect x="80" y="37" width="60" height="16" rx="3" class="bx"/><text x="110" y="49" class="s c">F1 1 A T</text>
+  <!-- MOV and HLK -->
+  <path d="M180 45 V85 M180 120 V165" class="hv"/><rect x="171" y="85" width="18" height="35" class="bx"/>
+  <text x="194" y="100" class="s">RV1</text><text x="194" y="112" class="s">MOV</text>
+  <path d="M255 45 V80 M255 125 V165" class="hv"/><rect x="225" y="80" width="90" height="45" rx="3" class="bx"/>
+  <text x="270" y="99" class="t c">HLK-5M05</text><text x="270" y="115" class="s c">5 V out &rarr; (b)</text>
+  <circle cx="180" cy="45" r="2.6" class="dot"/><circle cx="255" cy="45" r="2.6" class="dot"/>
+  <!-- selector -->
+  <circle cx="385" cy="45" r="5" class="tm"/><text x="385" y="32" class="tl c">13</text>
+  <rect x="405" y="8" width="115" height="122" rx="4" class="dash"/><text x="462" y="21" class="s c">S1 on the door</text>
+  <path d="M390 45 H445 M445 45 L474 35 M478 45 H535" class="hv"/><circle cx="478" cy="45" r="2" class="dot"/>
+  <text x="462" y="62" class="s c">AUTO 13&ndash;14</text>
+  <path d="M420 45 V95 H445 M445 95 L474 85 M478 95 H535" class="hv"/><circle cx="478" cy="95" r="2" class="dot"/>
+  <circle cx="420" cy="45" r="2.6" class="dot"/><text x="424" y="76" class="s">link</text>
+  <text x="462" y="112" class="s c">MAN 23&ndash;24</text>
+  <circle cx="540" cy="45" r="5" class="tm"/><text x="540" y="32" class="tl c">14</text>
+  <circle cx="540" cy="95" r="5" class="tm"/><text x="540" y="115" class="tl c">24</text>
+  <!-- relay contact -->
+  <path d="M545 45 H572 M572 45 L600 35 M604 45 H640 V95" class="hv"/><circle cx="604" cy="45" r="2" class="dot"/>
+  <text x="588" y="27" class="s c">K1 relay</text><text x="588" y="62" class="s c">13&ndash;14</text>
+  <!-- A1 bus, coil, lamp -->
+  <path d="M545 95 H720 M660 95 V110 M660 140 V165 M720 95 V110 M720 136 V165" class="hv"/>
+  <circle cx="640" cy="95" r="2.6" class="dot"/><circle cx="660" cy="95" r="2.6" class="dot"/>
+  <rect x="648" y="110" width="24" height="30" class="bx"/><text x="660" y="129" class="s c">KM</text>
+  <circle cx="720" cy="123" r="13" class="bx"/><path d="M711 114 L729 132 M729 114 L711 132" class="ln"/>
+  <text x="660" y="182" class="tl c">J3 A1 / A2</text><text x="660" y="194" class="s c">KM coil</text>
+  <text x="722" y="182" class="tl c">J4 X1 / X2</text><text x="722" y="194" class="s c">lamp H1</text>
+  <!-- N bus -->
+  <circle cx="30" cy="165" r="5" class="tm"/><text x="30" y="185" class="tl c">J1 N</text>
+  <path d="M35 165 H720" class="ln"/>
+  <circle cx="180" cy="165" r="2.6" class="dot"/><circle cx="255" cy="165" r="2.6" class="dot"/><circle cx="660" cy="165" r="2.6" class="dot"/>
+  <text x="400" y="160" class="s c">N (neutral)</text><text x="300" y="40" class="s c">L after the fuse</text>
+</svg>
+<svg viewBox="0 0 760 250" xmlns="http://www.w3.org/2000/svg" style="margin-top:6px">
+  <text x="6" y="12" class="t">(b) 5 V / 3.3 V side</text>
+  <text x="40" y="26" class="s">HLK +5V</text><text x="40" y="246" class="s">HLK &minus;Vo = GND</text>
+  <path d="M40 30 H700 M40 230 H720" class="ln"/>
+  <!-- C1, C2, PWR LED -->
+  <path d="M80 30 V112 M80 122 V230 M70 112 H90 M70 122 H90" class="ln"/><text x="70" y="145" class="s e">C1</text><text x="70" y="157" class="s e">470&micro;</text>
+  <path d="M115 30 V112 M115 122 V230 M105 112 H125 M105 122 H125" class="ln"/><text x="122" y="145" class="s">C2</text><text x="122" y="157" class="s">100n</text>
+  <path d="M155 30 V60 M155 92 V130 M146 130 H164 L155 146 Z M146 146 H164 M155 146 V230" class="ln"/>
+  <rect x="149" y="60" width="12" height="32" class="bx"/><text x="166" y="80" class="s">R4 1k</text><text x="168" y="142" class="s">LED1 PWR</text>
+  <!-- ESP32 -->
+  <rect x="215" y="70" width="125" height="120" rx="4" class="bx"/><text x="277" y="122" class="t c">ESP32</text><text x="277" y="136" class="s c">DevKit V1</text>
+  <path d="M240 30 V70 M240 190 V230" class="ln"/><text x="244" y="84" class="s">VIN</text><text x="244" y="184" class="s">GND</text>
+  <text x="336" y="94" class="s e">GPIO32</text><text x="336" y="144" class="s e">3V3</text><text x="336" y="169" class="s e">GPIO16</text>
+  <!-- sensor -->
+  <path d="M340 140 H425 M340 165 H355 M395 165 H425 M436 190 H446 M436 212 H446 M446 190 V230" class="ln"/>
+  <rect x="355" y="159" width="40" height="12" class="bx"/><text x="375" y="155" class="s c">R3 330</text>
+  <circle cx="430" cy="140" r="5" class="tm"/><circle cx="430" cy="165" r="5" class="tm"/>
+  <circle cx="430" cy="190" r="5" class="tm"/><circle cx="430" cy="212" r="5" class="tm"/>
+  <text x="452" y="144" class="tl">3V3</text><text x="452" y="169" class="tl">TX</text><text x="452" y="194" class="tl">MODE</text><text x="452" y="216" class="tl">GND</text>
+  <text x="430" y="124" class="s c">J5 sensor</text>
+  <!-- relay driver -->
+  <path d="M340 90 H470 V150 H480 M525 150 H586 M545 150 V170 M545 205 V230" class="ln"/>
+  <rect x="480" y="144" width="45" height="12" class="bx"/><text x="502" y="139" class="s c">R1 1k</text>
+  <rect x="539" y="170" width="12" height="35" class="bx"/><text x="534" y="192" class="s e">R2 10k</text>
+  <circle cx="545" cy="150" r="2.6" class="dot"/>
+  <circle cx="596" cy="150" r="17" class="bx"/>
+  <path d="M588 139 V161 M588 145 L600 135 V110 M588 155 L600 166 V230" class="ln"/><path d="M600 166 L591 163 L596 158 Z" class="dot"/>
+  <text x="618" y="166" class="s">Q1 BC547</text>
+  <path d="M600 30 V50 M600 85 V110 H700" class="ln"/><rect x="588" y="50" width="24" height="35" class="bx"/>
+  <text x="583" y="64" class="s e">K1 coil</text><text x="583" y="76" class="s e">G5NB 5 V</text>
+  <path d="M650 30 V55 M640 55 H660 M640 75 H660 L650 55 Z M650 75 V110" class="ln"/><text x="656" y="94" class="s">D1</text>
+  <path d="M700 30 V40 M700 65 V75 M691 75 H709 L700 91 Z M691 91 H709 M700 91 V110" class="ln"/>
+  <rect x="694" y="40" width="12" height="25" class="bx"/><text x="712" y="56" class="s">R5 1k</text><text x="712" y="88" class="s">LED2</text>
+  <circle cx="600" cy="30" r="2.6" class="dot"/><circle cx="650" cy="30" r="2.6" class="dot"/><circle cx="650" cy="110" r="2.6" class="dot"/><circle cx="600" cy="110" r="2.6" class="dot"/>
+  <circle cx="80" cy="30" r="2.6" class="dot"/><circle cx="115" cy="30" r="2.6" class="dot"/><circle cx="155" cy="30" r="2.6" class="dot"/><circle cx="240" cy="30" r="2.6" class="dot"/>
+  <circle cx="80" cy="230" r="2.6" class="dot"/><circle cx="115" cy="230" r="2.6" class="dot"/><circle cx="155" cy="230" r="2.6" class="dot"/><circle cx="240" cy="230" r="2.6" class="dot"/><circle cx="446" cy="230" r="2.6" class="dot"/><circle cx="545" cy="230" r="2.6" class="dot"/>
+  <text x="640" y="200" class="s">GPIO32 HIGH = relay on.</text><text x="640" y="212" class="s">R2 holds it off while</text><text x="640" y="224" class="s">the ESP32 boots.</text>
+</svg>
+<figcaption>Board schematic. Red = 230 V. The relay contact K1 13&ndash;14 in (a) is closed by the coil in (b); S1 MAN feeds the contactor directly, so the pump can still run with the ESP32 removed.</figcaption>
+</figure>
+
+<h2 class="pb">3. Parts list for one board</h2>
+<table>
+  <tr><th style="width:9%">Ref</th><th style="width:22%">Part</th><th>What to buy (India: Robu, ElectronicsComp, Probots, Lamington Road / SP Road shops)</th><th class="n">Qty</th><th class="n">&#8377; approx.</th></tr>
+  <tr><td>PS1</td><td>AC-DC module</td><td>Hi-Link <b>HLK-5M05</b> (5 V 1 A). Not the HLK-PM01; it has a different footprint.</td><td class="n">1</td><td class="n">230</td></tr>
+  <tr><td>K1</td><td>Relay</td><td><b>Omron G5NB-1A-E 5VDC</b> (SPST-NO, 5 V coil). The footprint fits only this relay.</td><td class="n">1</td><td class="n">100&ndash;150</td></tr>
+  <tr><td>F1</td><td>Fuse holder + fuse</td><td>5&times;20 mm PCB fuse holder, <b>22.5 mm pin pitch</b>, with snap-on cover (e.g. BLX-A), and a <b>1 A slow-blow (T1A) 250 V</b> glass fuse plus one spare</td><td class="n">1 + 2</td><td class="n">40</td></tr>
+  <tr><td>RV1</td><td>Varistor</td><td><b>10D471K</b> MOV (300 V AC, 12 mm disc, 7.5 mm pitch)</td><td class="n">1</td><td class="n">10</td></tr>
+  <tr><td>J1, J3, J4</td><td>Screw terminal</td><td>2-way, <b>5.08 mm</b> pitch, 300 V (KF301-2P / DG301)</td><td class="n">3</td><td class="n">36</td></tr>
+  <tr><td>J2</td><td>Screw terminal</td><td>3-way, 5.08 mm (KF301-3P)</td><td class="n">1</td><td class="n">15</td></tr>
+  <tr><td>J5</td><td>Screw terminal</td><td>4-way, 5.08 mm (KF301-4P, or two 2-way blocks slid together)</td><td class="n">1</td><td class="n">20</td></tr>
+  <tr><td>J6, J7</td><td>Female header</td><td>J6: 1&times;15, 2.54 mm. J7: <b>2&times;15</b>, 2.54 mm. J7's outer row takes an ESP32 whose pin rows are 25.4 mm apart (the common wide board), its inner row one with 22.86 mm, so either board plugs in.</td><td class="n">2</td><td class="n">40</td></tr>
+  <tr><td>Q1</td><td>Transistor</td><td>BC547 (or BC548 / 2N2222A in TO-92, check pinout C-B-E)</td><td class="n">1</td><td class="n">3</td></tr>
+  <tr><td>D1</td><td>Diode</td><td>1N4148</td><td class="n">1</td><td class="n">2</td></tr>
+  <tr><td>R1, R4, R5</td><td>Resistor</td><td>1 k&Omega; &frac14; W</td><td class="n">3</td><td class="n">3</td></tr>
+  <tr><td>R2</td><td>Resistor</td><td>10 k&Omega; &frac14; W</td><td class="n">1</td><td class="n">1</td></tr>
+  <tr><td>R3</td><td>Resistor</td><td>330 &Omega; &frac14; W</td><td class="n">1</td><td class="n">1</td></tr>
+  <tr><td>LED1, LED2</td><td>LED</td><td>3 mm, red or green</td><td class="n">2</td><td class="n">4</td></tr>
+  <tr><td>C1</td><td>Capacitor</td><td>470 &micro;F 16 V electrolytic, 8 mm diameter, 3.5 mm pitch</td><td class="n">1</td><td class="n">12</td></tr>
+  <tr><td>C2</td><td>Capacitor</td><td>100 nF ceramic, 5 mm pitch</td><td class="n">1</td><td class="n">2</td></tr>
+  <tr><td>H1&ndash;H4</td><td>Mounting</td><td>M3 &times; 10 mm nylon standoffs + screws, to fix the board on the box back plate</td><td class="n">4</td><td class="n">40</td></tr>
+  <tr class="sum"><td></td><td colspan="3">Components for one board (HLK-5M05 included, ESP32 not)</td><td class="n">&asymp; 550&ndash;600</td></tr>
+  <tr><td>PCB</td><td>Bare board</td><td>Order 5 (the minimum) from the zip file below</td><td class="n">5</td><td class="n">700&ndash;2,000</td></tr>
+</table>
+<p>Against the main guide's budget, the board replaces items 4&ndash;7 (relay module, capacitors, perfboard and terminals, DIN fuse; about &#8377;420), and the HLK-5M05 (item 3) is now part of this list. So the whole project costs about &#8377;900&ndash;2,200 more than in the guide, depending on where you order the PCB, and you get four spare boards.</p>
+
+<h2>4. Ordering the board</h2>
+<h3>Option A: assembled by the factory (all parts already soldered)</h3>
+<p>The factory buys and solders every part in section 3. You receive finished boards and only plug in the ESP32, push in the fuse and connect the wires.</p>
+<ol>
+  <li>On <b>jlcpcb.com</b>, upload <code>pcb\out\tank_controller_gerbers.zip</code> and choose the same board settings as in Option B, quantity 5.</li>
+  <li>Switch on <b>PCB Assembly</b>: Economic, top side, assembled quantity 2 or 5 (2 is cheaper, and the other 3 boards come bare as spares). Leave tooling holes at &ldquo;Added by JLCPCB&rdquo;.</li>
+  <li>Upload <code>pcb\out\assembly\tank_controller_bom.csv</code> as the BOM and <code>pcb\out\assembly\tank_controller_cpl.csv</code> as the CPL (placement) file. All 17 lines should match a part by its LCSC number. If one is out of stock, pick the suggested equivalent with the same package and value, and for J5 and the relay K1 accept only the same footprint.</li>
+  <li>In the placement preview, check that the polarised parts sit the way the silkscreen shows: the LED flat sides, D1's stripe at <b>K</b>, C1's &minus; stripe away from <b>+</b> and Q1's flat face. Rotate any that are wrong in the preview. (The HLK, relay and fuse holder only fit one way.)</li>
+  <li>Order. The quote shows the exact price; expect roughly $110&ndash;150 before shipping and customs for 5 boards with 2 assembled (most of it is fixed per-order fees, so assembling all 5 costs only about $20 more). Delivered to India this is about &#8377;12,000&ndash;18,000. Indian assemblers (Lion Circuits, PCB Power, Circuitwala) accept the same three files for a quote, with no customs.</li>
+</ol>
+<div class="note"><b>Not fitted by the factory:</b> the 1 A slow-blow 5&times;20 mm fuse (push it into F1 yourself), the ESP32 and the M3 standoffs. Before the first power-up, still do the stage 0 multimeter test in section 6.</div>
+<h3>Option B: bare board, you solder the parts</h3>
+<ol>
+  <li>Upload <code>pcb\out\tank_controller_gerbers.zip</code> to a PCB maker. In India: Lion Circuits, PCB Power or Robu PCB (about &#8377;700&ndash;1,500 for 5 boards, 5&ndash;8 days). Abroad: JLCPCB or PCBWay (about $2 for the boards plus $15&ndash;25 shipping and customs, 10&ndash;15 days).</li>
+  <li>Settings: 2 layers, 100 &times; 98 mm (the site reads this from the zip), FR-4, 1.6 mm thick, 1 oz copper, HASL lead-free finish, any solder mask colour, quantity 5. Leave everything else at the default.</li>
+  <li>If the site asks about the small rectangular cut-out near the relay: it is an intentional milled slot (isolation between the relay coil and its contacts) and must be kept.</li>
+</ol>
+
+<h2>5. Soldering order (bare board only)</h2>
+<ol>
+  <li><b>Flat parts first:</b> resistors R1&ndash;R5 (R1, R4, R5 are 1 k; R2 is 10 k; R3 is 330 &Omega;), then D1 with its black stripe at the end marked <b>K</b>.</li>
+  <li>LED1, LED2: short leg (flat side) into the <b>square</b> pad. Q1: flat face matches the silkscreen outline. C2, then C1 with its stripe (&minus;) away from the <b>+</b> mark.</li>
+  <li>Female headers J6 and J7. Plug the ESP32 into them while soldering, so they end up straight and at the right spacing; then take it out again.</li>
+  <li>Screw terminals J1&ndash;J5 with the wire openings facing the board edge, then the fuse holder, RV1, K1 and finally the HLK-5M05. Use plenty of solder on the 230 V joints and terminals.</li>
+  <li>Inspect the 230 V area with a magnifier: no solder bridges, no flux balls or wire strands between pads. Clean off flux with isopropyl alcohol.</li>
+  <li><b>Firmware:</b> in the sketch, keep <code>#define CONTROLLER_PCB 1</code>. The relay then runs on GPIO32, active HIGH (with <code>0</code>, the sketch goes back to the relay module on GPIO23, active LOW).</li>
+</ol>
+
+<h2>6. Testing, in three stages</h2>
+<table>
+  <tr><th style="width:18%">Stage</th><th style="width:44%">Do this</th><th>It is right when</th></tr>
+  <tr><td><b>0. Multimeter</b><br>board unpowered, fuse fitted</td><td>Measure resistance from J1 L to J1 N; from each of J1&ndash;J4 to sensor GND; and across the fuse holder clips.</td><td>L to N: no short (high or slowly rising reading, because the HLK input capacitor charges). Any 230 V terminal to sensor GND: open (over limit). Fuse: about 0 &Omega;.</td></tr>
+  <tr><td><b>1. Bench, USB only</b><br>no 230 V anywhere</td><td>Plug the ESP32 into the sockets, connect USB to a laptop, flash the sketch. Wire the sensor to J5 through a short CAT6 piece and point it at the floor. Switch the pump ON and OFF from the app.</td><td>Distance readings are steady in the serial monitor and the app. The RELAY LED lights and K1 clicks with each ON / OFF (most DevKit V1 boards feed USB 5 V to VIN; if yours doesn't, check this in stage 2 instead).</td></tr>
+  <tr><td><b>2. In the box, 230 V, no pump</b><br>pump wires 9&ndash;11 not connected</td><td>Mount the board, connect all board terminals (section 1) and wires 1&ndash;3, 7&ndash;8. <b>Unplug the USB cable</b>, close the box, switch the MCB on.<br>S1 on AUTO: switch ON and OFF from the app. S1 on MAN. S1 on 0.</td><td>PWR LED on, ESP32 connects. AUTO: app ON makes K1 click, KM pull in and the lamp light; app OFF releases all three. MAN: KM and lamp on whatever the app says. 0: everything off.</td></tr>
+  <tr><td><b>3. With the pump</b></td><td>MCB <b>off</b>. Connect pump wires 9&ndash;11. MCB on, then run the full test sequence in section 10 of the main guide.</td><td>The pump starts and stops with KM, stops at 95 %, and the fault tests in the guide pass.</td></tr>
+</table>
+<div class="warn"><b>Safety.</b> The top part of the board carries 230 V whenever the MCB is on, including the HLK pins, the fuse holder and the relay contact pins underneath. Only work on it with the MCB off, and never connect USB to the ESP32 while the board is powered from 230 V. Have an electrician check the box before the first full power-up.</div>
+
+<h2>7. Files</h2>
+<table>
+  <tr><th style="width:40%">File (in <code>water-tank-controller\pcb</code>)</th><th>What it is</th></tr>
+  <tr><td><code>out\tank_controller_gerbers.zip</code></td><td>Upload this to the PCB maker (Gerber + drill files)</td></tr>
+  <tr><td><code>out\assembly\tank_controller_bom.csv</code>, <code>tank_controller_cpl.csv</code></td><td>For factory assembly: parts list with LCSC part numbers, and the position and rotation of every part</td></tr>
+  <tr><td><code>tank_controller.kicad_pcb</code></td><td>The board, opens in KiCad 10</td></tr>
+  <tr><td><code>build_board.py</code>, <code>make.ps1</code></td><td>Generator script; <code>.\make.ps1</code> rebuilds the board, runs the design-rule and isolation checks, and re-exports the zip and pictures</td></tr>
+  <tr><td><code>tank_controller.kicad_dru</code></td><td>The 230 V rules: 1 mm tracks, 2 mm between 230 V nets, 6 mm to low voltage, 2 mm to the board edge</td></tr>
+</table>
+
+</body>
+</html>

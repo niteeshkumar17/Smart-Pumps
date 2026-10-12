@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>NK Smart Pumps — Monoblock board v2</title>
+<style>
+  @page { size: A4; margin: 12mm 13mm 13mm 13mm; }
+  * { box-sizing: border-box; }
+  body { font-family: "Segoe UI", Arial, sans-serif; font-size: 9.6pt; color: #1f2933; line-height: 1.38; margin: 0; }
+  h1 { font-size: 19pt; margin: 0 0 2px; color: #102a43; }
+  h2 { font-size: 12.5pt; color: #102a43; border-bottom: 2px solid #1d70b8; padding-bottom: 2px; margin: 14px 0 6px; page-break-after: avoid; }
+  h3 { font-size: 10.5pt; color: #1d70b8; margin: 9px 0 3px; page-break-after: avoid; }
+  p { margin: 4px 0; }
+  ul, ol { margin: 3px 0 5px 0; padding-left: 20px; }
+  li { margin: 2px 0; }
+  .sub { color: #52606d; font-size: 10.5pt; margin-bottom: 8px; }
+  table { border-collapse: collapse; width: 100%; font-size: 8.7pt; margin: 5px 0 7px; }
+  th, td { border: 1px solid #cbd2d9; padding: 2px 5px; vertical-align: top; text-align: left; }
+  th { background: #e9eff5; }
+  tr { page-break-inside: avoid; }
+  td.n, th.n { text-align: right; white-space: nowrap; }
+  figure { margin: 6px 0 10px; page-break-inside: avoid; }
+  figcaption { font-size: 8.5pt; color: #52606d; text-align: center; margin-top: 3px; }
+  svg { width: 100%; height: auto; display: block; }
+  .note, .warn, .ok { padding: 5px 9px; margin: 6px 0; page-break-inside: avoid; }
+  .note { border-left: 4px solid #1d70b8; background: #eef6fc; }
+  .warn { border-left: 4px solid #c62828; background: #fdeeee; }
+  .ok { border-left: 4px solid #2e7d32; background: #edf7ee; }
+  code { font-family: Consolas, monospace; font-size: 8.6pt; background: #f0f4f8; padding: 0 3px; }
+  svg text { font-family: "Segoe UI", Arial, sans-serif; }
+  .hv { stroke: #c62828; stroke-width: 1.8; fill: none; }
+  .lv { stroke: #1d70b8; stroke-width: 1.6; fill: none; }
+  .bx { fill: #fff; stroke: #3e4c59; stroke-width: 1.4; }
+  .t { font-size: 11px; font-weight: 600; fill: #1f2933; }
+  .s { font-size: 9.5px; fill: #52606d; }
+  .c { text-anchor: middle; }
+</style>
+</head>
+<body>
+
+<h1>NK Smart Pumps — monoblock board v2</h1>
+<div class="sub">Design sheet · single-phase monoblock, 1.5 HP maximum · the paid submersible board is a different product</div>
+
+<div class="ok"><b>Two products.</b> The board already ordered (small relay, external contactor) stays the submersible controller. This sheet is the monoblock controller: the motor live and neutral land on this board, and there is no KM contactor in the box.</div>
+
+<div class="warn"><b>Rating printed on the board: 1.5 HP, 230 V, single phase, monoblock only.</b> A 2 HP motor can start near the relay’s limit. A submersible still uses the first board and its contactor, because the submersible control box expects that arrangement.</div>
+
+<h2>1. The relay that actually switches the pump</h2>
+<p>The part is a TE Connectivity T92, two normally-open poles, silver-cadmium-oxide contacts, <b>5 V DC coil, PCB pins</b>. Search <b>T92P7D12-5</b>. Before buying, the label must say 5 VDC, 2 form A (two NO), and printed-circuit terminals. A 12 V coil, a quick-connect panel relay, or a 16 A smart-plug relay does not fit this design.</p>
+<p>With a DC coil, each pole is rated <b>18 A running (FLA) and 110 A start (LRA) at 240 V</b>, for 100,000 operations. A 1.5 HP single-phase monoblock is about <b>10 A running</b> and about <b>60–70 A</b> at the moment it starts. One pole switches live. The other switches neutral, so the pump is dead when the relay is open. The datasheet’s “3 HP” line is only 1,000 operations, so this product is not sold as 3 HP.</p>
+
+<h2>2. Current budget</h2>
+<table>
+  <tr><th>Path</th><th>What it may carry</th><th>What it is built from</th></tr>
+  <tr><td>Motor live and neutral</td><td>The pump, including the start surge</td><td>T92 poles, Phoenix MKDS 3 terminals (24 A, 2.5 mm²), 4 mm tracks on 2 oz copper. Live is on the top layer, neutral on the bottom.</td></tr>
+  <tr><td>Earth</td><td>A fault</td><td>2.5 mm² green wire straight from the supply earth to the pump. No earth track on the board.</td></tr>
+  <tr><td>HLK input</td><td>Under 1 A</td><td>1 A slow fuse, then the HLK-10M05 only</td></tr>
+  <tr><td>5 V coil</td><td>0.34 A while the pump is commanded on</td><td>About 15 Ω coil, 1.7 W, driven by a MOSFET</td></tr>
+  <tr><td>Lamp</td><td>A few milliamps</td><td>230 V indicator wired across the motor output</td></tr>
+</table>
+<p>The 1 A fuse is on the HLK branch only. Pump current never goes through it, so a normal start does not blow the fuse and generate a “board is dead” return.</p>
+
+<h2>3. Power and the coil driver</h2>
+<p>The supply is an <b>HLK-10M05</b> (5 V, 2 A). The coil holds 0.34 A, and the ESP32 Wi-Fi peak sits on top of that, about 0.9 A together. The 1 A module used on the first board is too small for this coil and would reset the controller.</p>
+<p>A BC547 is a 100 mA transistor, so it cannot drive this coil. The driver is a logic-level N-channel MOSFET, <b>IRLZ44N</b> or any part that is fully on at 3.3 V and rated at least 1 A. GPIO32, active high, is unchanged from the first board. A 100 kΩ resistor from the gate to ground holds the pump off while the ESP32 boots. A 1N4007 across the coil (cathode to the 5 V side) absorbs the turn-off spike. A 1000 µF, 16 V capacitor sits on the 5 V rail next to the driver.</p>
+
+<h2>4. Selector and lamp</h2>
+<p>The door selector switches the coil (0.34 A), never the motor. Use a <b>3-pole, 3-position</b> switch rated at least 6 A. The third pole only tells the ESP32 which position is selected, so the phone shows <b>AUTO</b>, <b>MANUAL</b>, or <b>OFF</b>.</p>
+<table>
+  <tr><th>Position</th><th>Pole 1</th><th>Pole 2</th><th>Result</th></tr>
+  <tr><td>OFF</td><td>Open</td><td>Open</td><td>Coil has no 5 V. The pump stays off even if GPIO32 is stuck high.</td></tr>
+  <tr><td>AUTO</td><td>5 V connected to the coil top</td><td>Open</td><td>The MOSFET turns the coil on and off. Same firmware: 60 s minimum off, dry-run, 45 min maximum run.</td></tr>
+  <tr><td>MAN</td><td>5 V connected to the coil top</td><td>Coil bottom connected to ground</td><td>The coil is across 5 V by itself. The pump runs with the ESP32 unplugged.</td></tr>
+</table>
+<p>Wire it as: pole 1 common to the board <b>+5V</b> terminal; pole 1 AUTO and pole 1 MAN linked together to the board <b>COIL</b> terminal; pole 2 common to the board <b>GND</b> terminal; pole 2 MAN to the board <b>MAN</b> terminal. Leave pole 2 AUTO and OFF empty. Pole 3 common to the board <b>GND</b> as well; pole 3 AUTO to <b>SA</b>; pole 3 MAN to <b>SM</b>. SA and SM are 3.3 V sense wires with a 1 kΩ resistor in series. In the sketch set <code>MONO_PCB 1</code>. The app subscribes to <code>selector</code> and shows the word AUTO, MANUAL, or OFF. That line is the door switch. The existing Auto mode switch in the app is still the software auto mode.</p>
+<p>The lamp is a 230 V indicator across the motor output (after the relay), so it lights only when the pump actually has power.</p>
+
+<h2>5. The breaker, the snubber, and a welded contact</h2>
+<div class="warn"><b>Fit a motor protection breaker, not only a 16 A C-curve MCB.</b> A stalled 1.5 HP motor can sit at 50–70 A. A C16 often waits for 80–160 A before it trips quickly, so the motor can burn. Use a motor breaker set to the nameplate current, about 9–14 A (Schneider GV2ME16 or an equivalent), in the supply ahead of this board.</div>
+<p>Across the MOTOR screws, after the relay, fit a snubber: <b>0.1 µF X2, 275 VAC</b>, in series with a <b>100 Ω, 2 W, flameproof</b> resistor. It is wired on the motor terminals, not as a part on the board. That reduces the arc that welds the contacts. A failed capacitor loads the line only while the pump is commanded on, and the motor breaker can open it. Do not put a MOV across the motor. The small 14D471 surge part, if fitted, stays on the HLK side of the 1 A fuse only.</p>
+<p>The app cannot open a contact that has welded. Dry-run protection works only while the relay still releases. Open the motor breaker before working on the pump. Never plug USB in while 230 V is on the board.</p>
+
+<figure>
+<svg viewBox="0 0 720 250" xmlns="http://www.w3.org/2000/svg">
+  <rect x="8" y="16" width="150" height="210" rx="4" class="bx"/>
+  <text x="83" y="36" class="t c">Motor path</text>
+  <text x="83" y="58" class="s c">MPCB, then 2.5 mm²</text>
+  <text x="83" y="88" class="t c">L in → T92 pole 1 → L out</text>
+  <text x="83" y="108" class="t c">N in → T92 pole 2 → N out</text>
+  <text x="83" y="136" class="s c">Earth bypasses the board</text>
+  <text x="83" y="164" class="s c">Snubber and 230 V lamp</text>
+  <text x="83" y="180" class="s c">across L out and N out</text>
+  <text x="83" y="208" class="s c">No 1 A fuse on this path</text>
+
+  <rect x="176" y="16" width="150" height="210" rx="4" class="bx"/>
+  <text x="251" y="36" class="t c">Logic path</text>
+  <text x="251" y="64" class="s c">1 A fuse</text>
+  <text x="251" y="84" class="t c">HLK-10M05</text>
+  <text x="251" y="102" class="s c">5 V, 2 A</text>
+  <text x="251" y="130" class="s c">ESP32, sensor</text>
+  <text x="251" y="156" class="s c">MOSFET on GPIO32</text>
+  <text x="251" y="184" class="s c">T92 coil, 0.34 A</text>
+  <text x="251" y="208" class="s c">8 mm away from motor copper</text>
+
+  <rect x="344" y="16" width="360" height="210" rx="4" class="bx"/>
+  <text x="524" y="36" class="t c">Door selector (coil only)</text>
+  <text x="524" y="64" class="s c">OFF — coil supply open</text>
+  <text x="524" y="88" class="s c">AUTO — ESP32 switches the coil</text>
+  <text x="524" y="112" class="s c">MAN — coil tied across 5 V</text>
+  <text x="524" y="148" class="s c">Firmware unchanged:</text>
+  <text x="524" y="166" class="s c">CONTROLLER_PCB 1, relay pin 32, active high</text>
+  <text x="524" y="184" class="s c">60 s minimum off, dry-run, 45 min max run</text>
+  <text x="524" y="208" class="s c">Sensor: red 3V3, white TX, yellow MODE, black GND</text>
+</svg>
+<figcaption>Motor current stays in the left box. The 5 V side only operates the coil. The selector never carries the pump.</figcaption>
+</figure>
+
+<h2>6. Terminals to connect</h2>
+<table>
+  <tr><th>Terminal</th><th>Connects to</th><th>Cable</th></tr>
+  <tr><td>MAINS L, N</td><td>Motor breaker output</td><td>2.5 mm²</td></tr>
+  <tr><td>MOTOR L, N</td><td>Pump live and neutral</td><td>2.5 mm²</td></tr>
+  <tr><td>Earth</td><td>Supply earth to the pump earth stud, outside the board</td><td>2.5 mm² green</td></tr>
+  <tr><td>LAMP X1, X2</td><td>230 V indicator</td><td>0.5 mm²</td></tr>
+  <tr><td>+5V, COIL, GND, MAN, SA, SM</td><td>3-pole selector. SA is AUTO sense, SM is MAN sense</td><td>0.5 mm²</td></tr>
+  <tr><td>SENSOR</td><td>Same four colours as the first board</td><td>CAT6</td></tr>
+</table>
+
+<h2>7. Board fabrication rules</h2>
+<ul>
+  <li>200 × 164 mm, 2 layers, <b>2 oz copper</b>. Motor tracks are 4.0 mm, which on 2 oz copper carries the 10 A running current. The last few millimetres into each screw neck down to 1.5 mm so the round end of a wide track does not touch the next screw. The HLK branch is 1.2 mm and is the only copper through the 1 A fuse.</li>
+  <li>230 V copper stays at least <b>8 mm</b> from 5 V and 3.3 V copper, on the same layer and through the board. The ground pour stays 13 mm clear of the nearest motor copper. A milled slot under the relay separates its contact pins from its coil pins. Keep that slot.</li>
+  <li>Mains and motor connectors are Phoenix <b>MKDS 3</b> (24 A, 2.5 mm²). The smaller 1.5 mm² blocks are only for the sensor, the selector, and the lamp.</li>
+  <li>KiCad’s design-rule check on this file reports no errors and no unconnected pads. Gerbers are in <code>pcb-mono\out</code>. The parts list is <code>pcb-mono\out\assembly\mono_controller_bom.csv</code> and the placement file is <code>mono_controller_cpl.csv</code> in the same folder.</li>
+  <li>The box is vented. The relay (1.7 W in the coil, plus contact heat) and the HLK are not packed in foam.</li>
+</ul>
+
+<div class="warn"><b>Do not upload this board until the relay is checked on paper.</b> The six hole positions follow the TE drawing (contact rows 16.00 mm, contact columns 7.85 mm, coil row 25.40 mm past the near contacts, coil pair 4.70 mm). The coil pair is centered on the contact pair. Print the footprint at 1:1, set a T92P7D12-5 on it, and confirm all six pins drop into the holes before any order. Nothing for this board has been uploaded or paid. The paid submersible order is unchanged.</div>
+
+</body>
+</html>

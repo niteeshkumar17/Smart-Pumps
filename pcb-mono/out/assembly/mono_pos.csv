@@ -1,0 +1,25 @@
+Ref,Val,Package,PosX,PosY,Rot,Side
+"C1","1000uF 16V","CP_Radial_D10.0mm_P5.00mm",100.000000,-120.000000,0.000000,top
+"C2","100nF","C_Disc_D5.0mm_W2.5mm_P5.00mm",116.000000,-120.000000,0.000000,top
+"D1","1N4007","D_DO-41_SOD81_P10.16mm_Horizontal",170.000000,-122.000000,0.000000,top
+"F1","1A T","Fuseholder_Cylinder-5x20mm_Schurter_0031_8201_Horizontal_Open",48.000000,-44.000000,0.000000,top
+"J1","MAINS","TerminalBlock_Phoenix_MKDS-3-2-5.08_1x02_P5.08mm_Horizontal",102.000000,-46.000000,180.000000,top
+"J2","MOTOR","TerminalBlock_Phoenix_MKDS-3-2-5.08_1x02_P5.08mm_Horizontal",134.000000,-46.000000,180.000000,top
+"J3","LAMP","TerminalBlock_Phoenix_MKDS-1,5-2-5.08_1x02_P5.08mm_Horizontal",162.000000,-46.000000,180.000000,top
+"J4","SELECTOR","TerminalBlock_Phoenix_MKDS-1,5-6-5.08_1x06_P5.08mm_Horizontal",138.000000,-176.000000,0.000000,top
+"J5","SENSOR","TerminalBlock_Phoenix_MKDS-1,5-4-5.08_1x04_P5.08mm_Horizontal",78.000000,-176.000000,0.000000,top
+"J6","ESP32 3V3 side","PinSocket_1x15_P2.54mm_Vertical",52.000000,-153.400000,90.000000,top
+"J7","ESP32 VIN side","PinSocket_2x15_P2.54mm_Vertical",52.000000,-128.000000,90.000000,top
+"K1","T92P7D12-5","Relay_TE_T92",185.000000,-60.000000,0.000000,top
+"LED1","PWR","LED_D3.0mm",146.000000,-120.000000,0.000000,top
+"LED2","RELAY","LED_D3.0mm",194.000000,-150.000000,0.000000,top
+"PS1","HLK-10M05","Converter_ACDC_Hi-Link_HLK-10Mxx",62.000000,-58.000000,-90.000000,top
+"Q1","IRLZ44N","TO-220-3_Vertical",198.000000,-142.000000,0.000000,top
+"R1","100","R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal",178.000000,-142.000000,0.000000,top
+"R2","100k","R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal",162.000000,-148.000000,0.000000,top
+"R3","330","R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal",66.000000,-166.000000,0.000000,top
+"R4","1k","R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal",134.000000,-120.000000,0.000000,top
+"R5","1k","R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal",180.000000,-150.000000,0.000000,top
+"RSA","1k","R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal",174.000000,-156.000000,0.000000,top
+"RSM","1k","R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal",174.000000,-166.000000,0.000000,top
+"RV1","275VAC","RV_Disc_D12mm_W4.2mm_P7.5mm",120.000000,-68.000000,0.000000,top

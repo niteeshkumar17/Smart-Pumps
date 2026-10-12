@@ -1,0 +1,14 @@
+{
+  "name": "A02YYUW tank",
+  "author": "Smart Water Tank Controller",
+  "pins": ["VCC", "GND", "TX", "RX", "PUMP"],
+  "display": { "width": 80, "height": 120 },
+  "controls": [
+    { "id": "simulate", "label": "Tank simulation (1 = on, 0 = use distance slider)", "type": "range", "min": 0, "max": 1, "step": 1 },
+    { "id": "distance", "label": "Distance sensor to water (mm)", "type": "range", "min": 250, "max": 1600, "step": 10 },
+    { "id": "fillRate", "label": "Pump fill speed (mm/s)", "type": "range", "min": 0, "max": 50, "step": 1 },
+    { "id": "useRate", "label": "Water use (mm/s)", "type": "range", "min": 0, "max": 40, "step": 1 },
+    { "id": "dryRun", "label": "Dry run: pump runs, no water (1)", "type": "range", "min": 0, "max": 1, "step": 1 },
+    { "id": "sensorFault", "label": "Sensor fault: stop sending (1)", "type": "range", "min": 0, "max": 1, "step": 1 }
+  ]
+}

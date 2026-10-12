@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Smart Water Tank Controller - Build Guide v2</title>
+<style>
+  @page { size: A4; margin: 13mm 13mm 14mm 13mm; }
+  * { box-sizing: border-box; }
+  body { font-family: "Segoe UI", Arial, sans-serif; font-size: 10pt; color: #1f2933; line-height: 1.42; margin: 0; }
+  h1 { font-size: 21pt; margin: 0 0 2px; color: #102a43; }
+  h2 { font-size: 13.5pt; color: #102a43; border-bottom: 2px solid #1d70b8; padding-bottom: 2px; margin: 18px 0 8px; page-break-after: avoid; }
+  h3 { font-size: 11pt; color: #243b53; margin: 12px 0 5px; page-break-after: avoid; }
+  p { margin: 5px 0; }
+  ul, ol { margin: 4px 0 6px 0; padding-left: 20px; }
+  li { margin: 2px 0; }
+  .sub { color: #52606d; font-size: 11pt; margin-bottom: 10px; }
+  table { border-collapse: collapse; width: 100%; font-size: 9pt; margin: 6px 0 8px; }
+  th, td { border: 1px solid #cbd2d9; padding: 3px 6px; vertical-align: top; text-align: left; }
+  th { background: #e9eff5; }
+  tr { page-break-inside: avoid; }
+  td.n, th.n { text-align: right; white-space: nowrap; }
+  tr.sum td { background: #f5f7fa; font-weight: 600; }
+  tr.total td { background: #dceefb; font-weight: 700; font-size: 10pt; }
+  figure { margin: 8px 0 12px; page-break-inside: avoid; }
+  figcaption { font-size: 8.8pt; color: #52606d; text-align: center; margin-top: 3px; }
+  svg { width: 100%; height: auto; display: block; }
+  .note, .warn, .ok { padding: 6px 10px; margin: 8px 0; page-break-inside: avoid; }
+  .note { border-left: 4px solid #1d70b8; background: #eef6fc; }
+  .warn { border-left: 4px solid #c62828; background: #fdeeee; }
+  .ok { border-left: 4px solid #2e7d32; background: #edf7ee; }
+  .pb { page-break-before: always; }
+  code { font-family: Consolas, monospace; font-size: 9pt; background: #f0f4f8; padding: 0 3px; }
+  pre { font-family: Consolas, monospace; font-size: 7.3pt; line-height: 1.3; background: #f7f9fb; border: 1px solid #d9e2ec; padding: 8px; white-space: pre-wrap; }
+  .two { display: flex; gap: 14px; }
+  .two > div { flex: 1; }
+  /* SVG styles */
+  svg text { font-family: "Segoe UI", Arial, sans-serif; }
+  .bx { fill: #fff; stroke: #3e4c59; stroke-width: 1.4; }
+  .bxf { fill: #f4f7fb; stroke: #3e4c59; stroke-width: 1.4; }
+  .t { font-size: 12.5px; font-weight: 600; fill: #1f2933; }
+  .s { font-size: 10.5px; fill: #52606d; }
+  .xs { font-size: 9.5px; fill: #52606d; }
+  .c { text-anchor: middle; }
+  .e { text-anchor: end; }
+  .ln { stroke: #3e4c59; stroke-width: 1.4; fill: none; }
+  .thin { stroke: #9aa5b1; stroke-width: 1; fill: none; }
+  .dash { stroke-dasharray: 5 4; }
+  .w5 { stroke: #d62828; stroke-width: 2.3; fill: none; }
+  .w3 { stroke: #f77f00; stroke-width: 2.3; fill: none; }
+  .wg { stroke: #222; stroke-width: 2.3; fill: none; }
+  .ws { stroke: #1b8a7a; stroke-width: 2.3; fill: none; }
+  .wl { stroke: #8d5524; stroke-width: 2.4; fill: none; }
+  .wn { stroke: #1565c0; stroke-width: 2.4; fill: none; }
+  .we { stroke: #2e7d32; stroke-width: 2.4; fill: none; }
+  .pipe { stroke: #7b8794; stroke-width: 5; fill: none; }
+  .wc { stroke: #8d5524; stroke-width: 1.7; fill: none; }
+  .wcn { stroke: #1565c0; stroke-width: 1.7; fill: none; }
+  .tgc { fill: #fff; stroke: #3e4c59; stroke-width: 1; }
+  .tgt { font-size: 8.5px; font-weight: 700; fill: #1f2933; text-anchor: middle; }
+  .scr { fill: #fff; stroke: #3e4c59; stroke-width: 1.1; }
+  .p8 { font-size: 8px; fill: #3e4c59; }
+  table.wires td:first-child { text-align: center; font-weight: 700; white-space: nowrap; }
+  table.wires { font-size: 8.2pt; line-height: 1.22; margin: 4px 0 6px; }
+  table.wires td, table.wires th { padding: 1px 5px; }
+</style>
+</head>
+<body>
+
+<h1>Smart Water Tank Controller</h1>
+<div class="sub">Build guide v2 (corrected) &middot; ESP32 + A02YYUW ultrasonic sensor + contactor pump control from your phone</div>
+
+<table>
+  <tr><th style="width:26%">Item</th><th>Specification</th></tr>
+  <tr><td>Level sensor</td><td>DFRobot A02YYUW waterproof ultrasonic (IP67), UART 9600 baud, 3&ndash;450 cm, about &plusmn;1 cm. Mounted on the tank lid.</td></tr>
+  <tr><td>Controller</td><td>ESP32 DevKit (WROOM-32) in an IP65 box on the wall at ground level</td></tr>
+  <tr><td>Sensor cable</td><td>One outdoor CAT6 cable (up to 10 m) from tank to box. The sensor runs on 3.3 V, so no level shifter is needed.</td></tr>
+  <tr><td>Pump switching</td><td>Opto-isolated relay module &rarr; 230 V contactor &rarr; pump (single-phase up to 1 HP with MNX-9)</td></tr>
+  <tr><td>Electrical protection</td><td>Uses the pump circuit's existing MCB (and RCCB, if fitted) in the house DB; 1 A fuse F1 for the 5 V supply and the contactor control circuit; earthing</td></tr>
+  <tr><td>Firmware safety</td><td>Stop at 95 %, sensor-fault stop, max-run-time fault, dry-run (no-rise) fault, 60 s rest between starts, watchdog</td></tr>
+  <tr><td>Pump types</td><td>Single-phase submersible (through its own control box) or surface motor / monoblock pump</td></tr>
+  <tr><td>Manual override</td><td>AUTO / OFF / MAN selector on the box door</td></tr>
+  <tr><td>Phone control</td><td>MQTT over TLS (HiveMQ Cloud free tier) with IoT MQTT Panel or Home Assistant: live level, pump on/off, auto mode, fault reset</td></tr>
+  <tr><td>Total cost</td><td><b>About &#8377;6,500 typical (range &#8377;5,100&ndash;8,300)</b>, or about &#8377;5,800 if no new pump cable is needed. Details in section 2.</td></tr>
+</table>
+
+<div class="note"><b>What changed from v1.</b>
+<ul>
+  <li><b>Sensor wires corrected:</b> white is TX (to GPIO16); yellow is the mode input, tied to GND. In v1 yellow was wired as TX, which would give no readings.</li>
+  <li>The sensor runs on 3.3 V, so its TX is already at a safe level and the 1k/2k divider is removed.</li>
+  <li>Relay module VCC is on 3.3 V and JD-VCC on 5 V, so it releases reliably when driven from a 3.3 V GPIO.</li>
+  <li>The pump is switched by a contactor; the small relay only drives the coil.</li>
+  <li>Added fuse F1, an AUTO/OFF/MAN selector and a pump-on lamp. The box is fed from the pump's existing MCB in the house DB. The HLK-5M05 is correctly listed as 5 V <b>1 A</b>.</li>
+  <li>Firmware: the sensor read waits for real frames; max-run and the new dry-run fault stay latched until reset; 60 s rest between starts; watchdog code works on ESP32 core 3.x; sane Wi-Fi retry; TLS login for HiveMQ Cloud; protection against retained commands; auto mode is remembered after a reboot.</li>
+  <li>Costs updated to 2026 Indian online prices.</li>
+</ul></div>
+
+<!-- ============================================================ -->
+<h2>1. How it works</h2>
+<p>The sensor on the tank lid measures the distance down to the water surface about ten times a second. The ESP32 takes the median of nine readings, converts the distance to a percentage using two calibration distances (tank full and tank empty), and decides whether the pump should run. It drives a small relay, the relay switches the coil of a contactor, and the contactor switches the pump.</p>
+<p>Every safety decision is made inside the ESP32, so the pump stays protected if the phone, Wi-Fi or internet is down. If the ESP32 itself fails, the AUTO/OFF/MAN selector lets you run the pump by hand.</p>
+<div class="warn"><b>No float switches in this build.</b> Overflow and dry-run protection rely entirely on the ultrasonic sensor and the firmware: the 95 % cut-off, the sensor-fault stop, the max-run limit and the dry-run check. Keep the sensor face clean and check the reading against the tank regularly. In MAN position nothing stops the pump automatically.</div>
+
+<figure>
+<svg viewBox="0 0 760 345">
+  <defs><marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3e4c59"/></marker></defs>
+  <rect x="212" y="12" width="166" height="325" rx="10" class="thin dash"/>
+  <text x="297" y="331" class="xs c">Control box (wall, ground floor)</text>
+
+  <rect x="10" y="30" width="150" height="60" rx="6" class="bxf"/><text x="85" y="56" class="t c">A02YYUW sensor</text><text x="85" y="73" class="s c">on tank lid</text>
+  <rect x="220" y="30" width="150" height="60" rx="6" class="bxf"/><text x="295" y="56" class="t c">ESP32</text><text x="295" y="73" class="s c">level logic + safety</text>
+  <rect x="430" y="30" width="130" height="60" rx="6" class="bx"/><text x="495" y="64" class="t c">Wi-Fi router</text>
+  <rect x="610" y="30" width="140" height="60" rx="6" class="bx"/><text x="680" y="56" class="t c">MQTT broker</text><text x="680" y="73" class="s c">HiveMQ Cloud (TLS)</text>
+  <rect x="220" y="150" width="150" height="60" rx="6" class="bxf"/><text x="295" y="176" class="t c">Relay module</text><text x="295" y="193" class="s c">opto-isolated</text>
+  <rect x="610" y="150" width="140" height="60" rx="6" class="bx"/><text x="680" y="176" class="t c">Phone app</text><text x="680" y="193" class="s c">IoT MQTT Panel / HA</text>
+  <rect x="10" y="260" width="150" height="60" rx="6" class="bx"/><text x="85" y="285" class="t c">Selector S1</text><text x="85" y="302" class="s c">AUTO / OFF / MAN</text>
+  <rect x="220" y="260" width="150" height="60" rx="6" class="bxf"/><text x="295" y="286" class="t c">Contactor KM</text><text x="295" y="303" class="s c">230 V coil</text>
+  <rect x="430" y="260" width="130" height="60" rx="6" class="bx"/><text x="495" y="286" class="t c">Pump motor</text><text x="495" y="303" class="s c">submersible / motor</text>
+
+  <path d="M160 60 H218" class="ln" marker-end="url(#a1)"/><text x="189" y="52" class="xs c">UART</text><text x="189" y="76" class="xs c">CAT6</text>
+  <path d="M372 60 H428" class="ln" marker-start="url(#a1)" marker-end="url(#a1)"/><text x="400" y="52" class="xs c">Wi-Fi</text>
+  <path d="M562 60 H608" class="ln" marker-start="url(#a1)" marker-end="url(#a1)"/><text x="585" y="52" class="xs c">Internet</text>
+  <path d="M680 92 V148" class="ln" marker-start="url(#a1)" marker-end="url(#a1)"/><text x="688" y="124" class="xs">MQTT</text>
+  <path d="M295 90 V148" class="ln" marker-end="url(#a1)"/><text x="303" y="124" class="xs">GPIO23</text>
+  <path d="M295 210 V258" class="ln" marker-end="url(#a1)"/><text x="303" y="238" class="xs">switches coil</text>
+  <path d="M160 290 H218" class="ln" marker-end="url(#a1)"/><text x="189" y="282" class="xs c">feeds</text><text x="189" y="306" class="xs c">the coil</text>
+  <path d="M370 290 H428" class="ln" marker-end="url(#a1)"/><text x="399" y="282" class="xs c">230 V</text>
+</svg>
+<figcaption>Figure 1. System block diagram.</figcaption>
+</figure>
+
+<!-- ============================================================ -->
+<h2>2. Bill of materials and total cost</h2>
+<p>Prices are typical Indian online prices in 2026, including GST (Robu, Robocraze, Thingbits, Amazon, electrical shops). Branded switchgear (L&amp;T, Schneider, Havells, Legrand) costs more than generic brands, but buy a branded contactor.</p>
+
+<table>
+  <tr><th>#</th><th>Item</th><th>Specification / notes</th><th class="n">Qty</th><th class="n">Range (&#8377;)</th><th class="n">Typical (&#8377;)</th></tr>
+  <tr><td colspan="6"><b>A. Electronics</b></td></tr>
+  <tr><td>1</td><td>ESP32 DevKit</td><td>WROOM-32 board (you already have it; about &#8377;400&ndash;550 new)</td><td class="n">1</td><td class="n">0</td><td class="n">0</td></tr>
+  <tr><td>2</td><td>Ultrasonic sensor</td><td>DFRobot A02YYUW (SEN0311), UART, IP67</td><td class="n">1</td><td class="n">1,500&ndash;2,000</td><td class="n">1,700</td></tr>
+  <tr><td>3</td><td>5 V power module</td><td>Hi-Link HLK-5M05, 230 V AC &rarr; 5 V DC, 1 A (enough for this load)</td><td class="n">1</td><td class="n">200&ndash;300</td><td class="n">230</td></tr>
+  <tr><td>4</td><td>Relay module</td><td>1-channel, optocoupler, <b>with JD-VCC jumper</b>, 10 A contacts</td><td class="n">1</td><td class="n">80&ndash;150</td><td class="n">100</td></tr>
+  <tr><td>5</td><td>Capacitors</td><td>C1 470 &micro;F 16 V electrolytic + 100 nF ceramic</td><td class="n">1 set</td><td class="n">15&ndash;30</td><td class="n">20</td></tr>
+  <tr><td>6</td><td>Board and terminals</td><td>Perfboard, PCB screw terminals (4-way &times;1, 2-way &times;4), female headers for the ESP32</td><td class="n">1 set</td><td class="n">150&ndash;250</td><td class="n">200</td></tr>
+  <tr><td>7</td><td>Fuse F1</td><td>1 A slow-blow fuse + DIN or panel fuse holder</td><td class="n">1</td><td class="n">60&ndash;150</td><td class="n">100</td></tr>
+  <tr class="sum"><td></td><td colspan="3">Subtotal A</td><td class="n">2,005&ndash;2,880</td><td class="n">2,350</td></tr>
+
+  <tr><td colspan="6"><b>B. Cables and mounting</b></td></tr>
+  <tr><td>8</td><td>Sensor cable</td><td>Outdoor (UV-rated) CAT6, solid copper</td><td class="n">10 m</td><td class="n">300&ndash;500</td><td class="n">400</td></tr>
+  <tr><td>9</td><td>Tank junction box</td><td>Small IP65 box (about 100&times;100 mm) + 2 cable glands, for the sensor-to-CAT6 joint</td><td class="n">1</td><td class="n">150&ndash;250</td><td class="n">200</td></tr>
+  <tr><td>10</td><td>Pump cable</td><td>3-core 1.5 mm&sup2; flexible copper (skip if the pump is already wired)</td><td class="n">~10 m</td><td class="n">500&ndash;900</td><td class="n">700</td></tr>
+  <tr><td>11</td><td>Consumables</td><td>Ferrules, lugs, heat-shrink, cable ties, screws, sleeving</td><td class="n">1 lot</td><td class="n">150&ndash;250</td><td class="n">200</td></tr>
+  <tr class="sum"><td></td><td colspan="3">Subtotal B</td><td class="n">1,100&ndash;1,900</td><td class="n">1,500</td></tr>
+
+  <tr><td colspan="6"><b>C. Pump switching and enclosure</b> (the MCB and any RCCB already in your house DB are reused)</td></tr>
+  <tr><td>12</td><td>Contactor KM</td><td>9 A AC-3, 230 V AC coil (e.g. L&amp;T MNX-9, Schneider LC1D09)</td><td class="n">1</td><td class="n">800&ndash;1,300</td><td class="n">1,000</td></tr>
+  <tr><td>13</td><td>Selector switch S1</td><td>22 mm, 3-position (1-0-2), 2 NO contact blocks</td><td class="n">1</td><td class="n">120&ndash;250</td><td class="n">180</td></tr>
+  <tr><td>14</td><td>Pilot lamp H1</td><td>22 mm, 230 V AC, green, "pump on"</td><td class="n">1</td><td class="n">50&ndash;100</td><td class="n">70</td></tr>
+  <tr><td>15</td><td>Main enclosure</td><td>IP65 ABS, about 300&times;250&times;130 mm, DIN rail, 3 cable glands. Plastic, not metal, so Wi-Fi gets out.</td><td class="n">1</td><td class="n">900&ndash;1,600</td><td class="n">1,200</td></tr>
+  <tr><td>16</td><td>DIN terminal blocks</td><td>L &times;2, N &times;2, earth &times;2, end stops</td><td class="n">1 lot</td><td class="n">150&ndash;300</td><td class="n">200</td></tr>
+  <tr class="sum"><td></td><td colspan="3">Subtotal C</td><td class="n">2,020&ndash;3,550</td><td class="n">2,650</td></tr>
+
+  <tr class="total"><td></td><td colspan="3">TOTAL (A + B + C)</td><td class="n">&#8377;5,125&ndash;8,330</td><td class="n">&#8377;6,500</td></tr>
+  <tr class="sum"><td></td><td colspan="3">Total if the existing pump cable can be reused (minus item 10)</td><td class="n">&#8377;4,625&ndash;7,430</td><td class="n">&#8377;5,800</td></tr>
+</table>
+
+<table>
+  <tr><th>Optional / extra</th><th>Why</th><th class="n">Approx. (&#8377;)</th></tr>
+  <tr><td>ESP32 DevKit</td><td>Only if you need another board</td><td class="n">400&ndash;550</td></tr>
+  <tr><td>Electrician</td><td>Mains section: contactor, fuse, earthing, connecting to the DB, testing</td><td class="n">800&ndash;2,000</td></tr>
+  <tr><td>Pump above 1 HP (to 2 HP)</td><td>Use an 18 A contactor (MNX-18) and 2.5 mm&sup2; pump cable</td><td class="n">+500&ndash;1,000</td></tr>
+  <tr><td>RCCB, 2-pole 30 mA</td><td>Only if the pump circuit has no RCCB / ELCB in the DB. Strongly recommended for pumps near water.</td><td class="n">1,200&ndash;2,600</td></tr>
+</table>
+
+<div class="note">v1 estimated &#8377;2,000&ndash;3,500. It left out the contactor, selector and a proper enclosure, and it underpriced the sensor, which costs &#8377;1,500&ndash;2,000 for the genuine DFRobot part.</div>
+
+<!-- ============================================================ -->
+<h2 class="pb">3. Installation layout</h2>
+<p>Only the sensor (and its small junction box) goes on the tank. All electronics and mains parts sit in one box on a wall at ground level, where they are easy to reach and out of the sun.</p>
+
+<figure>
+<svg viewBox="0 0 760 430">
+  <rect x="0" y="330" width="760" height="100" fill="#f3ede4"/>
+  <path d="M0 330 H760" stroke="#8a6d3b" stroke-width="2"/>
+  <rect x="120" y="140" width="400" height="190" fill="#fafbfc" stroke="#9aa5b1"/>
+  <rect x="110" y="128" width="420" height="12" fill="#cbd2d9"/>
+  <text x="200" y="175" class="s">House</text>
+
+  <!-- overhead tank -->
+  <rect x="300" y="40" width="170" height="88" rx="6" fill="#fff" stroke="#3e4c59" stroke-width="2"/>
+  <rect x="302" y="72" width="166" height="54" fill="#cfe8fb"/>
+  <text x="385" y="108" class="s c">Overhead tank</text>
+  <rect x="370" y="30" width="26" height="12" fill="#1d70b8"/>
+  <path d="M383 42 L350 70 M383 42 L416 70" class="thin dash"/>
+  <text x="364" y="24" class="xs e">Sensor</text>
+  <rect x="410" y="26" width="28" height="16" class="bx"/><text x="424" y="38" class="xs c">JB</text>
+  <path d="M396 36 H410" class="ws"/>
+  <!-- CAT6 -->
+  <path d="M438 34 H560 V220" class="ws"/>
+  <text x="568" y="150" class="xs">CAT6 sensor</text><text x="568" y="163" class="xs">cable (&le;10 m)</text>
+
+  <!-- control box -->
+  <rect x="530" y="220" width="60" height="75" rx="4" fill="#fff" stroke="#3e4c59" stroke-width="2"/>
+  <text x="560" y="252" class="xs c" font-weight="600">Control</text><text x="560" y="265" class="xs c" font-weight="600">box</text>
+  <path d="M598 222 a12 12 0 0 1 18 0 M594 216 a18 18 0 0 1 26 0" class="thin"/><circle cx="607" cy="226" r="2" fill="#9aa5b1"/>
+  <text x="625" y="224" class="xs">Wi-Fi</text>
+
+  <!-- DB and supply -->
+  <rect x="440" y="230" width="40" height="50" class="bx"/><text x="460" y="259" class="xs c">DB</text>
+  <path d="M480 255 H530" class="wl"/>
+  <text x="400" y="300" class="xs c">230 V supply from DB</text>
+
+  <!-- pump and sump -->
+  <path d="M560 295 V315 H640" class="wl"/>
+  <text x="560" y="350" class="xs">pump cable (230 V)</text>
+  <rect x="640" y="300" width="62" height="28" rx="4" fill="#e4e7eb" stroke="#3e4c59"/>
+  <text x="671" y="318" class="xs c" font-weight="600">Pump</text>
+  <rect x="620" y="360" width="130" height="62" fill="#fff" stroke="#3e4c59"/>
+  <rect x="622" y="380" width="126" height="40" fill="#cfe8fb"/>
+  <text x="712" y="375" class="xs c">Sump / borewell</text>
+  <path d="M671 328 V410" class="pipe"/>
+  <!-- delivery pipe -->
+  <path d="M702 312 H718 V60 H471" class="pipe"/>
+  <text x="710" y="160" class="xs e">Delivery</text><text x="710" y="173" class="xs e">pipe</text>
+</svg>
+<figcaption>Figure 2. Physical layout. JB = small junction box where the sensor lead joins the CAT6 cable. A surface motor pump is shown; a submersible sits down in the borewell or sump instead, with its control box next to the main box.</figcaption>
+</figure>
+
+<ul>
+  <li>Run the CAT6 sensor cable at least 30 cm away from the pump cable and any mains wiring. Cross them at right angles if they have to meet.</li>
+  <li>Bring every cable into a box from below through a cable gland, with a drip loop, so water can't run along the cable into the box.</li>
+  <li>Keep the sensor cable at 10 m or less. Use a conduit or UV-rated cable on the roof.</li>
+  <li>Mount the control box above any flood level, out of direct rain and sun, and within good Wi-Fi range (check signal strength on your phone at that spot).</li>
+</ul>
+
+<h3>Sensor cable: CAT6 pair assignment</h3>
+<p>CAT6 has 8 wires in 4 twisted pairs. Doubling up power and ground keeps the voltage drop negligible, and twisting TX with a ground wire reduces noise. Join the sensor leads to the CAT6 in the tank junction box with screw terminals or solder and heat-shrink.</p>
+<table>
+  <tr><th>CAT6 wire(s)</th><th>Sensor wire</th><th>Function</th><th>Box terminal (TB1)</th></tr>
+  <tr><td>Orange + white/orange</td><td>Red</td><td>VCC (3.3 V)</td><td>TB1-1 &rarr; ESP32 3V3</td></tr>
+  <tr><td>Green</td><td>White</td><td>TX (sensor data out)</td><td>TB1-2 &rarr; ESP32 GPIO16</td></tr>
+  <tr><td>Blue</td><td>Yellow</td><td>RX = output mode select</td><td>TB1-3 &rarr; linked to GND (real-time mode)</td></tr>
+  <tr><td>White/green + brown + white/brown</td><td>Black</td><td>GND</td><td>TB1-4 &rarr; GND</td></tr>
+  <tr><td>White/blue</td><td>&mdash;</td><td>Spare</td><td>Leave unconnected, insulated</td></tr>
+</table>
+<div class="warn"><b>Check your sensor's wire colours.</b> On the DFRobot A02YYUW they are red = VCC, black = GND, <b>yellow = RX (mode)</b>, <b>white = TX</b>. Some clones differ, so check the label or datasheet that came with yours.</div>
+
+<!-- ============================================================ -->
+<h2 class="pb">4. Low-voltage wiring (5 V / 3.3 V)</h2>
+
+<figure>
+<svg viewBox="0 0 760 500">
+  <defs><marker id="a3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1b8a7a"/></marker></defs>
+  <!-- HLK -->
+  <rect x="20" y="25" width="120" height="85" rx="4" class="bxf"/>
+  <text x="80" y="55" class="t c">HLK-5M05</text><text x="80" y="72" class="xs c">230 V AC &rarr; 5 V DC</text><text x="80" y="87" class="xs c">1 A (5 W)</text>
+  <text x="133" y="49" class="xs e">+</text><text x="133" y="99" class="xs e">&minus;</text>
+  <text x="80" y="126" class="xs c">AC side: see Fig. 4</text>
+
+  <!-- rails -->
+  <path d="M140 45 H740" class="w5"/><text x="738" y="38" class="xs e" fill="#d62828">5 V rail</text>
+  <path d="M140 95 H170 V460 H740" class="wg"/><text x="738" y="478" class="xs e">GND rail</text>
+
+  <!-- C1 -->
+  <path d="M205 45 V250" class="w5"/>
+  <path d="M192 250 H218 M192 258 H218" stroke="#222" stroke-width="2.5"/>
+  <path d="M205 258 V460" class="wg"/>
+  <text x="222" y="247" class="xs">+</text><text x="222" y="264" class="xs">C1 470 &micro;F</text><text x="222" y="276" class="xs">16 V</text>
+  <circle cx="205" cy="45" r="3.2" fill="#d62828"/><circle cx="205" cy="460" r="3.2" fill="#222"/>
+
+  <!-- ESP32 -->
+  <rect x="270" y="120" width="170" height="270" rx="6" class="bxf"/>
+  <text x="355" y="250" class="t c">ESP32 DevKit</text><text x="355" y="266" class="xs c">(WROOM-32)</text>
+  <text x="278" y="154" class="xs">VIN</text><text x="278" y="364" class="xs">GND</text>
+  <text x="432" y="154" class="xs e">3V3</text><text x="432" y="214" class="xs e">GPIO16 (RX2)</text><text x="432" y="344" class="xs e">GPIO23</text>
+  <path d="M270 150 H240 V45" class="w5"/><circle cx="240" cy="45" r="3.2" fill="#d62828"/>
+  <path d="M270 360 H240 V460" class="wg"/><circle cx="240" cy="460" r="3.2" fill="#222"/>
+
+  <!-- 3V3 -->
+  <path d="M440 150 H600 V170 H620" class="w3"/>
+  <circle cx="490" cy="150" r="3.2" fill="#f77f00"/>
+  <path d="M490 150 V204 a6 6 0 0 1 0 12 V310" class="w3"/>
+  <text x="508" y="143" class="xs" fill="#f77f00">3.3 V</text>
+
+  <!-- signals -->
+  <path d="M618 210 H442" class="ws" marker-end="url(#a3)"/>
+  <path d="M440 340 H458" class="ws" marker-end="url(#a3)"/>
+
+  <!-- JD-VCC -->
+  <path d="M555 45 V144 a6 6 0 0 1 0 12 V204 a6 6 0 0 1 0 12 V310" class="w5"/>
+  <circle cx="555" cy="45" r="3.2" fill="#d62828"/>
+
+  <!-- Relay module -->
+  <rect x="460" y="310" width="120" height="110" rx="4" class="bxf"/>
+  <text x="490" y="326" class="xs c">VCC</text><text x="555" y="326" class="xs c">JD-VCC</text>
+  <text x="466" y="344" class="xs">IN</text>
+  <text x="520" y="364" class="t c">Relay</text>
+  <text x="520" y="380" class="xs c">COM / NO / NC</text><text x="520" y="393" class="xs c">&rarr; Fig. 4</text>
+  <text x="520" y="414" class="xs c">GND</text>
+  <path d="M520 420 V460" class="wg"/><circle cx="520" cy="460" r="3.2" fill="#222"/>
+
+  <!-- TB1 -->
+  <rect x="620" y="150" width="50" height="150" rx="3" class="bx"/>
+  <text x="645" y="143" class="xs c" font-weight="600">TB1</text>
+  <circle cx="620" cy="170" r="3.2" fill="#3e4c59"/><circle cx="620" cy="210" r="3.2" fill="#3e4c59"/>
+  <circle cx="620" cy="245" r="3.2" fill="#3e4c59"/><circle cx="620" cy="280" r="3.2" fill="#3e4c59"/>
+  <text x="645" y="174" class="xs c">1</text><text x="645" y="214" class="xs c">2</text><text x="645" y="249" class="xs c">3</text><text x="645" y="284" class="xs c">4</text>
+  <path d="M620 245 H605 V280 H620" class="wg"/>
+  <path d="M605 280 V460" class="wg"/><circle cx="605" cy="280" r="3.2" fill="#222"/><circle cx="605" cy="460" r="3.2" fill="#222"/>
+  <path d="M670 170 H690" class="w5"/><text x="694" y="174" class="xs">red</text>
+  <path d="M670 210 H690" stroke="#9aa5b1" stroke-width="2.3"/><text x="694" y="214" class="xs">white</text>
+  <path d="M670 245 H690" stroke="#e0b400" stroke-width="2.3"/><text x="694" y="249" class="xs">yellow</text>
+  <path d="M670 280 H690" class="wg"/><text x="694" y="284" class="xs">black</text>
+  <text x="712" y="310" class="xs c">to sensor</text><text x="712" y="322" class="xs c">via CAT6</text>
+
+  <!-- legend -->
+  <path d="M20 492 H44" class="w5"/><text x="48" y="496" class="xs">5 V</text>
+  <path d="M90 492 H114" class="w3"/><text x="118" y="496" class="xs">3.3 V</text>
+  <path d="M170 492 H194" class="wg"/><text x="198" y="496" class="xs">GND</text>
+  <path d="M245 492 H269" class="ws"/><text x="273" y="496" class="xs">signal (arrow = direction)</text>
+  <text x="430" y="496" class="xs">Dot = joined. A hop over a wire = not connected.</text>
+</svg>
+<figcaption>Figure 3. Low-voltage schematic. Remove the relay module's VCC&ndash;JD-VCC jumper.</figcaption>
+</figure>
+
+<table>
+  <tr><th>From</th><th>To</th><th>Notes</th></tr>
+  <tr><td>HLK-5M05 +Vo</td><td>5 V rail &rarr; ESP32 VIN, relay JD-VCC</td><td>Don't plug in USB while the board is powered from VIN (unplug VIN when programming on the bench)</td></tr>
+  <tr><td>HLK-5M05 &minus;Vo</td><td>GND rail</td><td>All grounds are common</td></tr>
+  <tr><td>C1 470 &micro;F (+100 nF)</td><td>Across 5 V and GND, close to the ESP32</td><td>Steadies the supply when the relay switches</td></tr>
+  <tr><td>ESP32 3V3</td><td>TB1-1 (sensor VCC) and relay VCC</td><td>Sensor and opto draw about 15 mA total, well within the 3V3 regulator</td></tr>
+  <tr><td>TB1-2 (sensor TX, white)</td><td>ESP32 GPIO16 (RX2)</td><td>Direct; the signal is 3.3 V because the sensor runs on 3.3 V</td></tr>
+  <tr><td>TB1-3 (sensor RX/mode, yellow)</td><td>GND (link to TB1-4)</td><td>Real-time mode: a new reading every ~100 ms. Never leave it floating on a long cable.</td></tr>
+  <tr><td>ESP32 GPIO23</td><td>Relay IN</td><td>Active LOW. GPIO23 floats during boot, so the relay stays OFF while the ESP32 starts.</td></tr>
+  <tr><td>Relay VCC / JD-VCC</td><td>3V3 / 5 V, jumper removed</td><td>With VCC = 3V3, a HIGH GPIO puts zero current through the opto LED, so the relay always releases</td></tr>
+</table>
+<div class="note"><b>Relay module without a JD-VCC jumper?</b> Buy one that says "3.3 V trigger" or "high/low level trigger", or drive the relay coil with an NPN transistor (BC547 + 1 k base resistor + flyback diode). A plain 5 V active-LOW module fed from 5 V may not switch off from a 3.3 V GPIO.</div>
+<div class="note"><b>ESP32-WROVER board?</b> GPIO16 and 17 are used by its PSRAM. Use another pin for the sensor (for example GPIO26) and change <code>SENSOR_RX</code> in the firmware.</div>
+
+<!-- ============================================================ -->
+<h2 class="pb">5. Mains wiring (230 V)</h2>
+<div class="warn"><b>Danger: 230 V can kill.</b> If you are not trained, have a licensed electrician do this section. Switch off and lock out the supply before opening the box. Never work on it with wet hands or in a wet area.</div>
+<div class="note"><b>Using the existing DB.</b> The box is fed from the MCB that already supplies the pump in your house DB, and that MCB is also how you isolate the box. Before wiring, check two things in the DB: the MCB rating suits the pump (about 10 A C-curve up to 1 HP, 16 A for 1&ndash;1.5 HP), and whether an RCCB or ELCB (30 mA) protects that circuit. If there isn't one, adding one in the DB is the single most important safety upgrade for a pump.</div>
+
+<figure>
+<svg viewBox="0 0 760 500">
+  <!-- supply -->
+  <text x="10" y="16" class="xs c" font-weight="600">E</text><text x="30" y="16" class="xs c" font-weight="600">L</text><text x="60" y="16" class="xs c" font-weight="600">N</text>
+  <path d="M30 22 V50" class="wl"/><path d="M60 22 V50" class="wn"/>
+  <rect x="18" y="50" width="56" height="140" rx="3" fill="#f7f9fb" stroke="#3e4c59" stroke-width="1.4" stroke-dasharray="5 3"/>
+  <text x="46" y="92" class="xs c" font-weight="600">Existing</text><text x="46" y="105" class="xs c" font-weight="600">house DB</text>
+  <text x="46" y="128" class="xs c">MCB</text><text x="46" y="141" class="xs c">(+ RCCB</text><text x="46" y="154" class="xs c">if fitted)</text>
+  <path d="M30 190 V210 H120 V430" class="wl"/>
+  <path d="M60 190 V200 H735 V430" class="wn"/>
+  <path d="M10 22 V480 H430 V452" class="we"/>
+  <text x="130" y="226" class="xs" fill="#8d5524" font-weight="600">L</text><text x="722" y="226" class="xs" fill="#1565c0" font-weight="600">N</text>
+
+  <!-- rung A: HLK -->
+  <circle cx="120" cy="250" r="3.2" fill="#8d5524"/><circle cx="735" cy="250" r="3.2" fill="#1565c0"/>
+  <path d="M120 250 H160" class="wl"/>
+  <rect x="160" y="236" width="60" height="28" rx="3" class="bx"/><text x="190" y="254" class="xs c">F1 1 A</text>
+  <path d="M220 250 H520" class="wl"/>
+  <rect x="520" y="233" width="100" height="34" rx="3" class="bxf"/><text x="570" y="248" class="xs c" font-weight="600">HLK-5M05</text><text x="570" y="261" class="xs c">AC in (Fig. 3)</text>
+  <path d="M620 250 H735" class="wn"/>
+
+  <!-- rung B: control -->
+  <circle cx="240" cy="250" r="3.2" fill="#8d5524"/>
+  <path d="M240 250 V330 H335 V305 H345 M335 330 V355 H345" class="wl"/><circle cx="335" cy="330" r="3.2" fill="#8d5524"/>
+  <text x="290" y="322" class="xs c">control circuit</text>
+  <text x="248" y="290" class="xs">via F1</text>
+  <rect x="345" y="291" width="60" height="28" rx="3" class="bx"/><text x="375" y="309" class="xs c">S1 AUTO</text>
+  <path d="M405 305 H420" class="wl"/>
+  <rect x="420" y="291" width="80" height="28" rx="3" class="bxf"/><text x="460" y="309" class="xs c">K1 COM&rarr;NO</text>
+  <path d="M500 305 H520 V355 H405" class="wl"/>
+  <rect x="345" y="341" width="60" height="28" rx="3" class="bx"/><text x="375" y="359" class="xs c">S1 MAN</text>
+  <circle cx="520" cy="330" r="3.2" fill="#8d5524"/>
+  <path d="M520 330 H560" class="wl"/>
+  <rect x="560" y="313" width="80" height="34" rx="3" class="bxf"/><text x="600" y="327" class="xs c" font-weight="600">KM coil</text><text x="600" y="340" class="xs c">230 V AC</text>
+  <path d="M640 330 H735" class="wn"/><circle cx="735" cy="330" r="3.2" fill="#1565c0"/>
+  <circle cx="540" cy="330" r="3.2" fill="#8d5524"/>
+  <path d="M540 330 V375 H560" class="wl"/>
+  <rect x="560" y="363" width="80" height="26" rx="3" class="bx"/><text x="600" y="380" class="xs c">H1 lamp</text>
+  <path d="M640 375 H735" class="wn"/><circle cx="735" cy="375" r="3.2" fill="#1565c0"/>
+
+  <!-- rung C: power -->
+  <path d="M120 430 H200" class="wl"/>
+  <rect x="200" y="416" width="80" height="28" rx="3" class="bxf"/><text x="240" y="434" class="xs c">KM pole 1</text>
+  <path d="M280 430 H408" class="wl"/>
+  <circle cx="430" cy="430" r="22" fill="#fff" stroke="#3e4c59" stroke-width="2"/><text x="430" y="435" class="t c">M</text>
+  <path d="M452 430 H560" class="wn"/>
+  <rect x="560" y="416" width="80" height="28" rx="3" class="bxf"/><text x="600" y="434" class="xs c">KM pole 2</text>
+  <path d="M640 430 H735" class="wn"/>
+  <text x="458" y="470" class="xs">Pump motor</text>
+  <text x="150" y="474" class="xs" fill="#2e7d32">Earth (green/yellow) &rarr; pump body, box, DIN rail, all metal parts</text>
+
+  <!-- notes -->
+  <rect x="150" y="20" width="585" height="160" rx="6" fill="#f7f9fb" stroke="#d9e2ec"/>
+  <text x="165" y="42" class="s" font-weight="600" fill="#1f2933">Selector S1 (on the box door)</text>
+  <text x="165" y="60" class="s">AUTO: the ESP32 controls the pump through relay K1.</text>
+  <text x="165" y="76" class="s">OFF: the pump can't run.</text>
+  <text x="165" y="92" class="s">MAN: the pump runs directly with the ESP32 bypassed. Nothing stops it automatically: switch back to OFF.</text>
+  <text x="165" y="116" class="s" font-weight="600" fill="#1f2933">Submersible pump</text>
+  <text x="165" y="134" class="s">M = the L / N input of the submersible's own control box (keep that box in circuit).</text>
+  <text x="165" y="158" class="s">Wire colours:</text>
+  <path d="M245 154 H270" class="wl"/><text x="275" y="158" class="s">L (live)</text>
+  <path d="M330 154 H355" class="wn"/><text x="360" y="158" class="s">N (neutral)</text>
+  <path d="M435 154 H460" class="we"/><text x="465" y="158" class="s">E (earth)</text>
+</svg>
+<figcaption>Figure 4. Mains schematic in ladder form: live rail on the left, neutral rail on the right. K1 is the contact of the relay module in Figure 3. Figure 6 (section 6) shows the same circuit as real, wire-by-wire connections.</figcaption>
+</figure>
+
+<ul>
+  <li><b>Order:</b> the pump's existing MCB in the house DB &rarr; the box &rarr; two branches: (1) F1 fuse, which feeds both the HLK-5M05 and the control circuit (S1, relay contact, contactor coil, lamp), and (2) the contactor main contacts &rarr; pump.</li>
+  <li><b>Contactor:</b> use two of the MNX-9's three main poles, one for live and one for neutral, so the pump is fully isolated when it's off. MNX-9 coil terminals are A1 (from the control circuit) and A2 (to neutral).</li>
+  <li><b>Submersible pump:</b> single-phase submersibles come with a control box (starter and capacitors, often with an ON/OFF switch and overload). Connect the contactor's output to that control box's L and N input. Leave the control box's wiring to the pump as it is, and leave its own switch ON so the contactor does the switching.</li>
+  <li><b>Surface motor / monoblock pump:</b> connect the contactor's output directly to the motor's L and N terminals (its run capacitor stays as it is on the motor).</li>
+  <li><b>Pump size:</b> MNX-9 and 1.5 mm&sup2; cable cover single-phase pumps up to 1 HP. Many submersibles are 1&ndash;1.5 HP; for those, use an 18 A contactor (MNX-18) and 2.5 mm&sup2; cable.</li>
+  <li><b>Cables:</b> 1.5 mm&sup2; copper for the pump circuit (up to 1 HP), 0.75&ndash;1 mm&sup2; for the control circuit, with ferrules on every stranded end and labels on L, N and E.</li>
+  <li><b>Earth:</b> connect the pump body, the DIN rail and any metal in the box to the earth terminal. Check that the house earth is good; earthing (and any RCCB) relies on it.</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2>6. Inside the enclosure</h2>
+<figure>
+<svg viewBox="0 0 760 445">
+  <text x="285" y="14" class="xs c" font-weight="600">Inside the enclosure (door open)</text>
+  <rect x="90" y="20" width="390" height="390" rx="10" fill="#fafbfc" stroke="#3e4c59" stroke-width="2.5"/>
+  <text x="110" y="44" class="xs" font-weight="700" fill="#c62828">MAINS ZONE 230 V</text>
+  <rect x="105" y="95" width="360" height="10" fill="#b8c2cc"/>
+  <rect x="118" y="65" width="16" height="70" fill="#dcefd9" stroke="#2e7d32"/><text x="126" y="80" class="xs c">E</text>
+  <rect x="136" y="65" width="16" height="70" fill="#dcefd9" stroke="#2e7d32"/><text x="144" y="80" class="xs c">E</text>
+  <rect x="166" y="60" width="62" height="80" rx="3" class="bxf"/><text x="197" y="96" class="xs c" font-weight="600">KM</text><text x="197" y="109" class="xs c">contactor</text>
+  <rect x="250" y="65" width="16" height="70" fill="#d6e4f5" stroke="#1565c0"/><text x="258" y="80" class="xs c">N</text>
+  <rect x="268" y="65" width="16" height="70" fill="#d6e4f5" stroke="#1565c0"/><text x="276" y="80" class="xs c">N</text>
+  <rect x="296" y="65" width="16" height="70" fill="#e8d5c4" stroke="#8d5524"/><text x="304" y="80" class="xs c">L</text>
+  <rect x="314" y="65" width="16" height="70" fill="#e8d5c4" stroke="#8d5524"/><text x="322" y="80" class="xs c">L</text>
+  <rect x="346" y="65" width="26" height="70" rx="3" class="bx"/><text x="359" y="104" class="xs c">F1</text>
+  <text x="285" y="160" class="xs c">DIN rail: contactor, fuse, terminals (MCB stays in the house DB)</text>
+  <circle cx="90" cy="80" r="7" fill="#fff" stroke="#3e4c59" stroke-width="2"/><text x="78" y="84" class="xs e">Mains in</text>
+  <circle cx="90" cy="130" r="7" fill="#fff" stroke="#3e4c59" stroke-width="2"/><text x="78" y="134" class="xs e">Pump</text>
+
+  <path d="M100 200 H470" stroke="#c62828" stroke-width="3" stroke-dasharray="8 5"/>
+  <text x="285" y="192" class="xs c" fill="#c62828">insulating barrier, or at least 3 cm air gap</text>
+
+  <text x="110" y="224" class="xs" font-weight="700" fill="#1d70b8">LOW-VOLTAGE ZONE 5 V / 3.3 V</text>
+  <rect x="110" y="235" width="350" height="150" fill="#eef6ee" stroke="#9aa5b1"/>
+  <rect x="122" y="250" width="72" height="44" rx="3" class="bx"/><text x="158" y="270" class="xs c" font-weight="600">HLK-5M05</text><text x="158" y="283" class="xs c">AC pins up</text>
+  <circle cx="212" cy="272" r="9" fill="#fff" stroke="#3e4c59"/><text x="212" y="276" class="xs c">C1</text>
+  <rect x="235" y="250" width="120" height="70" rx="3" class="bxf"/><text x="285" y="282" class="xs c" font-weight="600">ESP32</text><text x="285" y="296" class="xs c">antenna &rarr; right</text>
+  <rect x="335" y="252" width="18" height="66" fill="url(#hatch6)" stroke="none"/>
+  <rect x="372" y="250" width="76" height="55" rx="3" class="bxf"/><text x="410" y="275" class="xs c" font-weight="600">Relay</text><text x="410" y="288" class="xs c">module</text>
+  <rect x="372" y="330" width="76" height="30" rx="3" class="bx"/><text x="410" y="349" class="xs c">TB1 sensor</text>
+  <path d="M400 250 V212 M420 250 V212" stroke="#8d5524" stroke-width="2" stroke-dasharray="3 2"/>
+  <text x="392" y="216" class="xs e">K1 wires in sleeving</text>
+  <circle cx="410" cy="410" r="7" fill="#fff" stroke="#3e4c59" stroke-width="2"/><text x="410" y="432" class="xs c">Sensor CAT6</text>
+  <defs><pattern id="hatch6" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><path d="M0 0 V5" stroke="#9aa5b1" stroke-width="1.5"/></pattern></defs>
+
+  <!-- door -->
+  <text x="630" y="14" class="xs c" font-weight="600">Door (front)</text>
+  <rect x="520" y="20" width="220" height="390" rx="10" fill="#fafbfc" stroke="#3e4c59" stroke-width="2.5"/>
+  <circle cx="590" cy="110" r="26" fill="#fff" stroke="#3e4c59" stroke-width="2"/>
+  <path d="M590 110 L590 88" stroke="#3e4c59" stroke-width="5" stroke-linecap="round"/>
+  <text x="556" y="80" class="xs c">AUTO</text><text x="590" y="72" class="xs c">OFF</text><text x="626" y="80" class="xs c">MAN</text>
+  <text x="590" y="152" class="xs c" font-weight="600">S1</text>
+  <circle cx="680" cy="110" r="16" fill="#9be7a2" stroke="#2e7d32" stroke-width="2"/>
+  <text x="680" y="152" class="xs c" font-weight="600">H1 PUMP ON</text>
+  <rect x="545" y="190" width="170" height="46" rx="4" fill="#fff" stroke="#9aa5b1"/>
+  <text x="630" y="209" class="xs c" font-weight="600">WATER PUMP CONTROLLER</text>
+  <text x="630" y="225" class="xs c" fill="#c62828">Isolate supply before opening</text>
+  <text x="630" y="280" class="xs c">Plastic box only:</text><text x="630" y="294" class="xs c">a metal box blocks Wi-Fi</text>
+</svg>
+<figcaption>Figure 5. Suggested layout. Mains glands on the side near the DIN rail, sensor gland at the bottom near TB1, so mains and sensor wiring never share space.</figcaption>
+</figure>
+
+<h3 class="pb">Complete wiring diagram (build from this)</h3>
+<p>Every wire in the system on one page, drawn where it physically goes. Each wire has a number in a circle; the table after the figure lists the same numbers with the exact terminals, so you can wire one row at a time and tick it off.</p>
+<figure>
+<svg viewBox="0 0 760 975" style="max-width:178mm;margin:0 auto">
+  <!-- ===== JB inset ===== -->
+  <rect x="10" y="8" width="440" height="160" rx="6" fill="#f7f9fb" stroke="#9aa5b1"/>
+  <text x="22" y="26" class="xs" font-weight="700" fill="#1f2933">Junction box JB (on the tank): sensor lead joined to the CAT6</text>
+  <text x="80" y="42" class="p8 c">sensor wire</text><text x="186" y="42" class="p8 c">joint</text><text x="300" y="42" class="p8 c">CAT6 wire(s) &rarr; box terminal</text>
+  <text x="110" y="58" class="xs e">Red (VCC)</text><path d="M116 54 H176" stroke="#d62828" stroke-width="3"/>
+  <rect x="176" y="48" width="20" height="12" rx="2" class="bx"/><path d="M196 54 H240" stroke="#f77f00" stroke-width="3"/>
+  <text x="246" y="58" class="xs">orange + white/orange &rarr; TB1-1</text>
+  <text x="110" y="84" class="xs e">White (TX)</text><path d="M116 80 H176" stroke="#b0b6bd" stroke-width="3"/>
+  <rect x="176" y="74" width="20" height="12" rx="2" class="bx"/><path d="M196 80 H240" stroke="#2e9e44" stroke-width="3"/>
+  <text x="246" y="84" class="xs">green &rarr; TB1-2</text>
+  <text x="110" y="110" class="xs e">Yellow (mode)</text><path d="M116 106 H176" stroke="#e0b400" stroke-width="3"/>
+  <rect x="176" y="100" width="20" height="12" rx="2" class="bx"/><path d="M196 106 H240" stroke="#1565c0" stroke-width="3"/>
+  <text x="246" y="110" class="xs">blue &rarr; TB1-3</text>
+  <text x="110" y="136" class="xs e">Black (GND)</text><path d="M116 132 H176" stroke="#222" stroke-width="3"/>
+  <rect x="176" y="126" width="20" height="12" rx="2" class="bx"/><path d="M196 132 H240" stroke="#8d5524" stroke-width="3"/>
+  <text x="246" y="136" class="xs">brown + white/brown + white/green &rarr; TB1-4</text>
+  <text x="22" y="158" class="xs">White/blue is spare: fold it back and insulate it at both ends.</text>
+  <path d="M450 16 H666 V24" class="thin dash"/>
+
+  <!-- ===== tank ===== -->
+  <rect x="485" y="50" width="230" height="95" rx="6" fill="#fff" stroke="#3e4c59" stroke-width="2"/>
+  <rect x="487" y="88" width="226" height="55" fill="#cfe8fb"/>
+  <text x="600" y="124" class="s c">Overhead tank</text>
+  <rect x="585" y="38" width="26" height="12" fill="#1d70b8"/>
+  <path d="M598 50 L566 86 M598 50 L630 86" class="thin dash"/>
+  <text x="572" y="40" class="xs e">Sensor</text>
+  <rect x="650" y="24" width="32" height="20" class="bx"/><text x="666" y="38" class="xs c">JB</text>
+  <path d="M611 42 H650" class="ws"/>
+
+  <!-- ===== CAT6 run ===== -->
+  <path d="M682 34 H748 V925 H520 V903" stroke="#64748b" stroke-width="4" fill="none"/>
+  <text transform="translate(740,690) rotate(-90)" class="xs c">CAT6 sensor cable from JB (up to 10 m), at least 30 cm from mains cables</text>
+
+  <!-- ===== existing DB ===== -->
+  <rect x="10" y="186" width="130" height="150" rx="4" fill="#f7f9fb" stroke="#3e4c59" stroke-dasharray="5 3"/>
+  <text x="75" y="200" class="xs c" font-weight="700">Existing house DB</text>
+  <rect x="18" y="207" width="48" height="22" rx="2" class="bx"/><text x="42" y="222" class="xs c">MCB</text>
+  <rect x="18" y="234" width="48" height="12" fill="#d6e4f5" stroke="#1565c0"/><text x="42" y="243" class="p8 c">N bar</text>
+  <rect x="18" y="262" width="48" height="12" fill="#dcefd9" stroke="#2e7d32"/><text x="42" y="271" class="p8 c">E bar</text>
+  <text x="75" y="300" class="p8 c">pump's existing MCB:</text>
+  <text x="75" y="312" class="p8 c">OFF = whole box dead</text>
+  <text x="75" y="352" class="p8 c">supply cable 3 &times; 1.5 mm&sup2;</text>
+
+  <!-- ===== pump ===== -->
+  <rect x="10" y="380" width="130" height="130" rx="4" fill="#f7f9fb" stroke="#3e4c59" stroke-dasharray="5 3"/>
+  <text x="62" y="396" class="xs c" font-weight="700">PUMP</text>
+  <circle cx="140" cy="400" r="3.2" fill="#2e7d32"/><text x="132" y="403" class="p8 e">E</text>
+  <circle cx="140" cy="412" r="3.2" fill="#8d5524"/><text x="132" y="415" class="p8 e">L</text>
+  <circle cx="140" cy="424" r="3.2" fill="#1565c0"/><text x="132" y="427" class="p8 e">N</text>
+  <text x="18" y="448" class="p8" font-weight="700">Surface / monoblock:</text>
+  <text x="18" y="460" class="p8">motor terminal box</text>
+  <text x="18" y="478" class="p8" font-weight="700">Submersible:</text>
+  <text x="18" y="490" class="p8">L / N / E input of its</text>
+  <text x="18" y="502" class="p8">own control box</text>
+  <text x="75" y="526" class="p8 c">pump cable 3 &times; 1.5 mm&sup2;</text>
+
+  <!-- ===== control box ===== -->
+  <rect x="160" y="186" width="440" height="714" rx="8" fill="#fafbfc" stroke="#3e4c59" stroke-width="2.5"/>
+  <text x="470" y="203" class="xs c" font-weight="700" fill="#c62828">CONTROL BOX &middot; MAINS ZONE 230 V</text>
+  <ellipse cx="160" cy="243" rx="5" ry="36" fill="#cbd2d9" stroke="#3e4c59"/><text x="156" y="200" class="p8 e">G1</text>
+  <ellipse cx="160" cy="412" rx="5" ry="20" fill="#cbd2d9" stroke="#3e4c59"/><text x="156" y="446" class="p8 e">G2</text>
+  <ellipse cx="520" cy="900" rx="20" ry="5" fill="#cbd2d9" stroke="#3e4c59"/><text x="546" y="914" class="p8">G3</text>
+
+  <!-- DIN rail and terminals -->
+  <rect x="168" y="322" width="416" height="10" fill="#b8c2cc"/>
+  <text x="520" y="318" class="p8 c">DIN rail</text>
+  <rect x="171" y="300" width="16" height="60" fill="#dcefd9" stroke="#2e7d32"/><rect x="187" y="300" width="16" height="60" fill="#dcefd9" stroke="#2e7d32"/>
+  <rect x="324" y="300" width="16" height="60" fill="#d6e4f5" stroke="#1565c0"/><rect x="340" y="300" width="16" height="60" fill="#d6e4f5" stroke="#1565c0"/>
+  <rect x="369" y="300" width="16" height="60" fill="#e8d5c4" stroke="#8d5524"/><rect x="385" y="300" width="16" height="60" fill="#e8d5c4" stroke="#8d5524"/>
+  <rect x="177" y="317" width="20" height="5" fill="#5f6b78"/><rect x="330" y="317" width="20" height="5" fill="#5f6b78"/><rect x="375" y="317" width="20" height="5" fill="#5f6b78"/>
+  <text x="179" y="345" class="p8 c">E</text><text x="195" y="345" class="p8 c">E</text>
+  <text x="332" y="345" class="p8 c">N</text><text x="348" y="345" class="p8 c">N</text>
+  <text x="377" y="345" class="p8 c">L</text><text x="393" y="345" class="p8 c">L</text>
+  <rect x="425" y="296" width="20" height="68" rx="3" class="bx"/><text x="435" y="334" class="p8 c" font-weight="700">F1</text><text x="435" y="344" class="p8 c">1 A</text>
+
+  <!-- contactor -->
+  <rect x="215" y="294" width="95" height="100" rx="3" class="bxf"/>
+  <text x="262" y="340" class="xs c" font-weight="700">KM</text><text x="262" y="352" class="p8 c">contactor</text>
+  <text x="230" y="319" class="p8 c">1/L1</text><text x="255" y="319" class="p8 c">3/L2</text><text x="280" y="319" class="p8 c">5/L3</text><text x="300" y="319" class="p8 c">A2</text>
+  <text x="230" y="375" class="p8 c">2/T1</text><text x="255" y="375" class="p8 c">4/T2</text><text x="280" y="375" class="p8 c">6/T3</text><text x="300" y="375" class="p8 c">A1</text>
+
+  <!-- mains wires -->
+  <path d="M66 218 H381 V308" class="wl"/>
+  <path d="M66 240 H336 V308" class="wn"/>
+  <path d="M66 268 H179 V308" class="we"/>
+  <path d="M395 308 V290 H435 V308" class="wl"/>
+  <path d="M433 352 V542" class="wc"/>
+  <path d="M348 352 V400 H400 V542" class="wcn"/>
+  <path d="M373 308 V226 H230 V234 a6 6 0 0 1 0 12 V304" class="wl"/>
+  <path d="M328 308 V278 H255 V304" class="wn"/>
+  <path d="M230 384 V412 H140" class="wl"/>
+  <path d="M255 384 V424 H140" class="wn"/>
+  <path d="M195 352 V400 H140" class="we"/>
+  <path d="M259 304 V289 H300 V304" class="wcn"/>
+  <path d="M441 352 V362 H625" class="wc"/>
+  <path d="M625 420 H525 V540" class="wc"/>
+  <path d="M491 540 V470 H439 a6 6 0 0 0 -12 0 H406 a6 6 0 0 0 -12 0 H300 V384" class="wc"/>
+  <path d="M495 540 V392 H625" class="wc"/>
+  <path d="M348 308 V250 H366 a11 11 0 0 1 22 0 H592 V330 H625" class="wcn"/>
+
+  <!-- screws (drawn over wire ends) -->
+  <circle cx="179" cy="308" r="3.5" class="scr"/><circle cx="195" cy="308" r="3.5" class="scr"/><circle cx="179" cy="352" r="3.5" class="scr"/><circle cx="195" cy="352" r="3.5" class="scr"/>
+  <circle cx="332" cy="308" r="3.5" class="scr"/><circle cx="348" cy="308" r="3.5" class="scr"/><circle cx="332" cy="352" r="3.5" class="scr"/><circle cx="348" cy="352" r="3.5" class="scr"/>
+  <circle cx="377" cy="308" r="3.5" class="scr"/><circle cx="393" cy="308" r="3.5" class="scr"/><circle cx="377" cy="352" r="3.5" class="scr"/><circle cx="393" cy="352" r="3.5" class="scr"/>
+  <circle cx="435" cy="308" r="3.5" class="scr"/><circle cx="437" cy="352" r="3.5" class="scr"/>
+  <circle cx="230" cy="304" r="3.5" class="scr"/><circle cx="255" cy="304" r="3.5" class="scr"/><circle cx="280" cy="304" r="3.5" class="scr"/><circle cx="300" cy="304" r="3.5" class="scr"/>
+  <circle cx="230" cy="384" r="3.5" class="scr"/><circle cx="255" cy="384" r="3.5" class="scr"/><circle cx="280" cy="384" r="3.5" class="scr"/><circle cx="300" cy="384" r="3.5" class="scr"/>
+
+  <!-- ===== door ===== -->
+  <rect x="615" y="186" width="125" height="284" rx="6" fill="#fff" stroke="#3e4c59" stroke-width="2"/>
+  <text x="677" y="201" class="xs c" font-weight="700">DOOR (back view)</text>
+  <circle cx="650" cy="236" r="17" fill="#fff" stroke="#3e4c59" stroke-width="2"/>
+  <path d="M650 236 L650 222" stroke="#3e4c59" stroke-width="4" stroke-linecap="round"/>
+  <text x="650" y="267" class="p8 c" font-weight="700">S1</text><text x="650" y="278" class="p8 c">AUTO/OFF/MAN</text>
+  <circle cx="710" cy="236" r="12" fill="#9be7a2" stroke="#2e7d32" stroke-width="2"/>
+  <text x="710" y="267" class="p8 c" font-weight="700">H1</text><text x="710" y="278" class="p8 c">pump-on lamp</text>
+  <path d="M625 362 H632 V377 H625" class="wc"/>
+  <path d="M625 392 H632 V406 H625" class="wc"/>
+  <circle cx="625" cy="330" r="3.2" fill="#1565c0"/><text x="640" y="333" class="p8">H1 X2</text>
+  <circle cx="625" cy="362" r="3.2" fill="#8d5524"/><text x="640" y="365" class="p8">S1 13 AUTO in</text>
+  <circle cx="625" cy="377" r="3.2" fill="#8d5524"/><text x="640" y="380" class="p8">S1 23 MAN in</text>
+  <circle cx="625" cy="392" r="3.2" fill="#8d5524"/><text x="640" y="395" class="p8">S1 24 MAN out</text>
+  <circle cx="625" cy="406" r="3.2" fill="#8d5524"/><text x="640" y="409" class="p8">H1 X1</text>
+  <circle cx="625" cy="420" r="3.2" fill="#8d5524"/><text x="640" y="423" class="p8">S1 14 AUTO out</text>
+  <text x="677" y="445" class="p8 c">J1, J2 = short links</text><text x="677" y="456" class="p8 c">on the back of the door</text>
+  <text x="613" y="373" class="p8 e" font-weight="700">J1</text><text x="613" y="403" class="p8 e" font-weight="700">J2</text>
+
+  <!-- ===== barrier ===== -->
+  <path d="M170 506 H590" stroke="#c62828" stroke-width="2.5" stroke-dasharray="8 5"/>
+  <text x="176" y="500" class="p8" fill="#c62828">insulating barrier (or 3 cm air gap)</text>
+
+  <!-- ===== low-voltage board ===== -->
+  <rect x="180" y="520" width="400" height="360" fill="#eef6ee" stroke="#9aa5b1"/>
+  <text x="190" y="536" class="xs" font-weight="700" fill="#1d70b8">LOW-VOLTAGE BOARD 5 V / 3.3 V</text>
+  <rect x="375" y="542" width="85" height="48" rx="3" class="bxf"/>
+  <text x="400" y="553" class="p8 c">N</text><text x="433" y="553" class="p8 c">L</text>
+  <text x="417" y="567" class="xs c" font-weight="700">HLK-5M05</text>
+  <text x="395" y="587" class="p8 c">+</text><text x="440" y="587" class="p8 c">&minus;</text>
+  <rect x="464" y="540" width="114" height="48" rx="3" class="bxf"/>
+  <text x="493" y="551" class="p8 c">NO</text><text x="525" y="551" class="p8 c">COM</text><text x="555" y="551" class="p8 c">NC</text>
+  <text x="523" y="568" class="xs c" font-weight="700">RELAY</text>
+  <text x="482" y="584" class="p8 c" font-size="7">JD-VCC</text><text x="507" y="584" class="p8 c" font-size="7">GND</text><text x="531" y="584" class="p8 c" font-size="7">IN</text><text x="556" y="584" class="p8 c" font-size="7">VCC</text>
+  <rect x="250" y="640" width="100" height="160" rx="4" class="bxf"/>
+  <text x="300" y="690" class="t c">ESP32</text><text x="300" y="704" class="p8 c">DevKit</text>
+  <text x="344" y="658" class="p8 e">GPIO23</text><text x="344" y="718" class="p8 e">GPIO16 (RX2)</text><text x="344" y="788" class="p8 e">3V3</text>
+  <text x="256" y="773" class="p8">GND</text><text x="256" y="788" class="p8">VIN</text>
+  <rect x="290" y="800" width="20" height="6" fill="#9aa5b1"/><text x="300" y="817" class="p8 c">USB</text>
+  <rect x="470" y="820" width="100" height="30" rx="2" class="bx"/>
+  <text x="464" y="839" class="xs e" font-weight="700">TB1</text>
+  <text x="488" y="839" class="p8 c">1</text><text x="510" y="839" class="p8 c">2</text><text x="532" y="839" class="p8 c">3</text><text x="554" y="839" class="p8 c">4</text>
+
+  <!-- LV wires -->
+  <path d="M395 590 V598 H205 V785 H250" class="w5"/>
+  <path d="M395 598 H434 a6 6 0 0 1 12 0 H482 V588" class="w5"/>
+  <path d="M440 590 V630 H222 V770 H250" class="wg"/>
+  <path d="M440 630 H507 V588" class="wg"/>
+  <path d="M300 598 V609" class="w5"/><path d="M290 609 H310 M290 616 H310" stroke="#222" stroke-width="2.5"/><path d="M300 616 V630" class="wg"/>
+  <text x="314" y="613" class="p8">C1 470 &micro;F</text><text x="314" y="623" class="p8">(+100 nF)</text>
+  <path d="M350 655 H531 V588" class="ws"/>
+  <path d="M350 785 H488 V820" class="w3"/>
+  <path d="M488 785 H504 a6 6 0 0 1 12 0 H556 V588" class="w3"/>
+  <path d="M510 820 V715 H350" class="ws"/>
+  <path d="M532 820 V810 H554 V820" class="wg"/>
+  <path d="M554 810 H572 V630 H562 a6 6 0 0 0 -12 0 H537 a6 6 0 0 0 -12 0 H507" class="wg"/>
+  <circle cx="395" cy="598" r="3.2" fill="#d62828"/><circle cx="300" cy="598" r="3.2" fill="#d62828"/>
+  <circle cx="440" cy="630" r="3.2" fill="#222"/><circle cx="300" cy="630" r="3.2" fill="#222"/><circle cx="507" cy="630" r="3.2" fill="#222"/>
+  <circle cx="488" cy="785" r="3.2" fill="#f77f00"/><circle cx="554" cy="810" r="3.2" fill="#222"/>
+  <circle cx="350" cy="655" r="2.6" fill="#3e4c59"/><circle cx="350" cy="715" r="2.6" fill="#3e4c59"/><circle cx="350" cy="785" r="2.6" fill="#3e4c59"/>
+  <circle cx="250" cy="770" r="2.6" fill="#3e4c59"/><circle cx="250" cy="785" r="2.6" fill="#3e4c59"/>
+  <circle cx="488" cy="820" r="3" class="scr"/><circle cx="510" cy="820" r="3" class="scr"/><circle cx="532" cy="820" r="3" class="scr"/><circle cx="554" cy="820" r="3" class="scr"/>
+
+  <!-- CAT6 cores into TB1 -->
+  <path d="M488 850 V862 L511 884 V900" stroke="#f77f00" stroke-width="2" fill="none"/>
+  <path d="M510 850 V862 L517 884 V900" stroke="#2e9e44" stroke-width="2" fill="none"/>
+  <path d="M532 850 V862 L523 884 V900" stroke="#1565c0" stroke-width="2" fill="none"/>
+  <path d="M554 850 V862 L529 884 V900" stroke="#8d5524" stroke-width="2" fill="none"/>
+  <circle cx="488" cy="850" r="3" class="scr"/><circle cx="510" cy="850" r="3" class="scr"/><circle cx="532" cy="850" r="3" class="scr"/><circle cx="554" cy="850" r="3" class="scr"/>
+  <text x="440" y="872" class="p8 e">CAT6 cores, colours as in JB table</text>
+
+  <!-- ===== wire numbers ===== -->
+  <g>
+  <circle cx="100" cy="218" r="7" class="tgc"/><text x="100" y="221" class="tgt">1</text>
+  <circle cx="100" cy="240" r="7" class="tgc"/><text x="100" y="243" class="tgt">2</text>
+  <circle cx="100" cy="268" r="7" class="tgc"/><text x="100" y="271" class="tgt">3</text>
+  <circle cx="414" cy="290" r="7" class="tgc"/><text x="414" y="293" class="tgt">4</text>
+  <circle cx="433" cy="440" r="7" class="tgc"/><text x="433" y="443" class="tgt">5</text>
+  <circle cx="400" cy="440" r="7" class="tgc"/><text x="400" y="443" class="tgt">6</text>
+  <circle cx="300" cy="226" r="7" class="tgc"/><text x="300" y="229" class="tgt">7</text>
+  <circle cx="300" cy="278" r="7" class="tgc"/><text x="300" y="281" class="tgt">8</text>
+  <circle cx="212" cy="412" r="7" class="tgc"/><text x="212" y="415" class="tgt">9</text>
+  <circle cx="180" cy="424" r="7" class="tgc"/><text x="180" y="427" class="tgt">10</text>
+  <circle cx="180" cy="400" r="7" class="tgc"/><text x="180" y="403" class="tgt">11</text>
+  <circle cx="276" cy="289" r="6" class="tgc"/><text x="276" y="292" class="tgt" font-size="7.5">12</text>
+  <circle cx="540" cy="362" r="7" class="tgc"/><text x="540" y="365" class="tgt">13</text>
+  <circle cx="575" cy="420" r="7" class="tgc"/><text x="575" y="423" class="tgt">14</text>
+  <circle cx="350" cy="470" r="7" class="tgc"/><text x="350" y="473" class="tgt">15</text>
+  <circle cx="495" cy="440" r="7" class="tgc"/><text x="495" y="443" class="tgt">16</text>
+  <circle cx="480" cy="250" r="7" class="tgc"/><text x="480" y="253" class="tgt">17</text>
+  <circle cx="205" cy="700" r="7" class="tgc"/><text x="205" y="703" class="tgt">18</text>
+  <circle cx="222" cy="732" r="7" class="tgc"/><text x="222" y="735" class="tgt">19</text>
+  <circle cx="464" cy="598" r="7" class="tgc"/><text x="464" y="601" class="tgt">20</text>
+  <circle cx="556" cy="700" r="7" class="tgc"/><text x="556" y="703" class="tgt">21</text>
+  <circle cx="474" cy="630" r="7" class="tgc"/><text x="474" y="633" class="tgt">22</text>
+  <circle cx="400" cy="655" r="7" class="tgc"/><text x="400" y="658" class="tgt">23</text>
+  <circle cx="420" cy="785" r="7" class="tgc"/><text x="420" y="788" class="tgt">24</text>
+  <circle cx="430" cy="715" r="7" class="tgc"/><text x="430" y="718" class="tgt">25</text>
+  <circle cx="543" cy="810" r="6" class="tgc"/><text x="543" y="813" class="tgt" font-size="7.5">26</text>
+  <circle cx="572" cy="745" r="7" class="tgc"/><text x="572" y="748" class="tgt">27</text>
+  </g>
+
+  <!-- ===== key points ===== -->
+  <rect x="10" y="560" width="140" height="236" rx="6" fill="#fff8e1" stroke="#e0b400"/>
+  <text x="20" y="578" class="xs" font-weight="700" fill="#1f2933">KEY POINTS</text>
+  <text x="20" y="598" class="p8" font-weight="700">1. DB MCB OFF before</text><text x="31" y="609" class="p8">touching anything.</text>
+  <text x="20" y="629" class="p8" font-weight="700">2. Remove the relay's</text><text x="31" y="640" class="p8">VCC&ndash;JD-VCC jumper.</text>
+  <text x="20" y="660" class="p8" font-weight="700">3. Unplug wire 18 (VIN)</text><text x="31" y="671" class="p8">while USB is plugged in.</text>
+  <text x="20" y="691" class="p8" font-weight="700">4. Ferrule on every</text><text x="31" y="702" class="p8">stranded wire end.</text>
+  <text x="20" y="722" class="p8" font-weight="700">5. Leave the pump off</text><text x="31" y="733" class="p8">(no 9&ndash;11) for the first test.</text>
+  <text x="20" y="753" class="p8" font-weight="700">6. Pump over 1 HP:</text><text x="31" y="764" class="p8">MNX-18 + 2.5 mm&sup2; for</text><text x="31" y="775" class="p8">wires 1&ndash;3 and 7&ndash;11.</text>
+
+  <!-- ===== legend ===== -->
+  <path d="M12 940 H34" class="wl"/><text x="38" y="943" class="p8">L live</text>
+  <path d="M82 940 H104" class="wn"/><text x="108" y="943" class="p8">N neutral</text>
+  <path d="M162 940 H184" class="we"/><text x="188" y="943" class="p8">E earth (1.5 mm&sup2;)</text>
+  <path d="M272 940 H294" class="wc"/><text x="298" y="943" class="p8">control L / N (0.75 mm&sup2;)</text>
+  <path d="M410 940 H432" stroke="#64748b" stroke-width="4"/><text x="436" y="943" class="p8">CAT6 cable</text>
+  <path d="M12 960 H34" class="w5"/><text x="38" y="963" class="p8">5 V</text>
+  <path d="M70 960 H92" class="w3"/><text x="96" y="963" class="p8">3.3 V</text>
+  <path d="M135 960 H157" class="wg"/><text x="161" y="963" class="p8">GND</text>
+  <path d="M195 960 H217" class="ws"/><text x="221" y="963" class="p8">data signal</text>
+  <circle cx="290" cy="959" r="7" class="tgc"/><text x="290" y="962" class="tgt">7</text><text x="301" y="963" class="p8">= wire number in the table</text>
+  <text x="430" y="963" class="p8">dot = joined &middot; hop = crosses, not joined &middot; grey bar = bridge</text>
+</svg>
+<figcaption>Figure 6. Complete wiring. Each pair of DIN terminals (E E, N N, L L) is linked with a plug-in bridge (grey bar), so all four screws of a pair are the same point. Where two wire ends share one screw, crimp them into one twin ferrule.</figcaption>
+</figure>
+
+<h3 class="pb">Wire-by-wire list</h3>
+<p>Wire in this order. Switch the house DB MCB OFF first, and test with the pump disconnected (leave out wires 9&ndash;11) until section 10, step 4 passes.</p>
+<table class="wires">
+  <tr><th style="width:6%">No.</th><th style="width:30%">From</th><th style="width:30%">To</th><th>Wire / notes</th></tr>
+  <tr><td colspan="4"><b>A. Supply cable from the house DB</b> (3-core 1.5 mm&sup2;, enters through gland G1)</td></tr>
+  <tr><td>1</td><td>DB: pump MCB output</td><td>L terminal (left one), top screw</td><td>Brown (live)</td></tr>
+  <tr><td>2</td><td>DB: neutral bar</td><td>N terminal (left one), top screw</td><td>Blue (neutral)</td></tr>
+  <tr><td>3</td><td>DB: earth bar</td><td>E terminal (left one), top screw</td><td>Green/yellow (earth)</td></tr>
+  <tr><td colspan="4"><b>B. Inside the box, mains side</b></td></tr>
+  <tr><td>4</td><td>L terminal (right one), top</td><td>F1, top</td><td>1.5 mm&sup2; brown</td></tr>
+  <tr><td>5</td><td>F1, bottom</td><td>HLK-5M05 AC pin <b>L</b></td><td>0.75 mm&sup2; brown. Crosses the barrier.</td></tr>
+  <tr><td>6</td><td>N terminal (right one), bottom</td><td>HLK-5M05 AC pin <b>N</b></td><td>0.75 mm&sup2; blue. Crosses the barrier.</td></tr>
+  <tr><td>7</td><td>L terminal (left one), top</td><td>KM <b>1/L1</b></td><td>1.5 mm&sup2; brown. Shares the screw with wire 1 (twin ferrule).</td></tr>
+  <tr><td>8</td><td>N terminal (left one), top</td><td>KM <b>3/L2</b></td><td>1.5 mm&sup2; blue. Shares the screw with wire 2 (twin ferrule).</td></tr>
+  <tr><td>12</td><td>KM 3/L2</td><td>KM <b>A2</b> (coil)</td><td>0.75 mm&sup2; blue, short link. The coil's neutral.</td></tr>
+  <tr><td colspan="4"><b>C. Pump cable</b> (3-core 1.5 mm&sup2;, leaves through gland G2; 2.5 mm&sup2; and MNX-18 above 1 HP)</td></tr>
+  <tr><td>9</td><td>KM <b>2/T1</b></td><td>Pump L</td><td>Brown</td></tr>
+  <tr><td>10</td><td>KM <b>4/T2</b></td><td>Pump N</td><td>Blue</td></tr>
+  <tr><td>11</td><td>E terminal (right one), bottom</td><td>Pump E (body / control-box earth)</td><td>Green/yellow. Also earth the DIN rail to this terminal.</td></tr>
+  <tr><td colspan="4"><b>D. Control circuit</b> (0.75 mm&sup2;; door wires as a flexible loom across the hinge)</td></tr>
+  <tr><td>13</td><td>F1, bottom</td><td>Door: S1 terminal <b>13</b></td><td>Brown. Shares F1's bottom screw with wire 5.</td></tr>
+  <tr><td>J1</td><td>S1 terminal 13</td><td>S1 terminal <b>23</b></td><td>Short link on the switch, so both contacts get the same live feed</td></tr>
+  <tr><td>14</td><td>S1 terminal <b>14</b> (AUTO out)</td><td>Relay <b>COM</b></td><td>Brown. Crosses the barrier.</td></tr>
+  <tr><td>15</td><td>Relay <b>NO</b></td><td>KM <b>A1</b> (coil)</td><td>Brown. Crosses the barrier.</td></tr>
+  <tr><td>16</td><td>Relay <b>NO</b></td><td>Door: S1 terminal <b>24</b> (MAN out)</td><td>Brown. With wire 15, two wires on the NO screw. Relay NC stays unused.</td></tr>
+  <tr><td>J2</td><td>S1 terminal 24</td><td>H1 terminal <b>X1</b></td><td>Short link on the door: the lamp lights whenever the coil is powered</td></tr>
+  <tr><td>17</td><td>N terminal (right one), top</td><td>Door: H1 terminal <b>X2</b></td><td>Blue. Lamp neutral.</td></tr>
+  <tr><td colspan="4"><b>E. Low-voltage board</b> (0.5 mm&sup2; or jumper wire, soldered or in screw terminals; same circuit as Figure 3)</td></tr>
+  <tr><td>18</td><td>HLK-5M05 <b>+Vo</b></td><td>ESP32 <b>VIN</b></td><td>Red, 5 V</td></tr>
+  <tr><td>19</td><td>HLK-5M05 <b>&minus;Vo</b></td><td>ESP32 <b>GND</b></td><td>Black</td></tr>
+  <tr><td>20</td><td>HLK-5M05 +Vo</td><td>Relay <b>JD-VCC</b></td><td>Red, 5 V. <b>Remove the VCC&ndash;JD-VCC jumper</b> first.</td></tr>
+  <tr><td>C1</td><td>5 V line (+)</td><td>GND line (&minus;)</td><td>470 &micro;F 16 V, stripe (&minus;) to GND, plus 100 nF beside it, close to the ESP32</td></tr>
+  <tr><td>22</td><td>HLK-5M05 &minus;Vo</td><td>Relay <b>GND</b></td><td>Black</td></tr>
+  <tr><td>23</td><td>ESP32 <b>GPIO23</b></td><td>Relay <b>IN</b></td><td>Signal (active LOW)</td></tr>
+  <tr><td>24</td><td>ESP32 <b>3V3</b></td><td>TB1-<b>1</b></td><td>Orange, 3.3 V for the sensor</td></tr>
+  <tr><td>21</td><td>ESP32 3V3</td><td>Relay <b>VCC</b></td><td>Orange, 3.3 V for the opto input</td></tr>
+  <tr><td>25</td><td>TB1-<b>2</b></td><td>ESP32 <b>GPIO16</b> (RX2)</td><td>Signal: sensor data into the ESP32</td></tr>
+  <tr><td>26</td><td>TB1-<b>3</b></td><td>TB1-<b>4</b></td><td>Short link: sensor mode pin to GND (real-time mode)</td></tr>
+  <tr><td>27</td><td>TB1-<b>4</b></td><td>Relay GND (GND line)</td><td>Black</td></tr>
+  <tr><td colspan="4"><b>F. Sensor cable</b> (CAT6 enters through gland G3; joint at the tank as in the JB table in Figure 6)</td></tr>
+  <tr><td>TB1</td><td>CAT6 at the box end</td><td>TB1-1 orange + white/orange &middot; TB1-2 green &middot; TB1-3 blue &middot; TB1-4 brown + white/brown + white/green</td><td>White/blue spare, insulated. Same colours at both ends.</td></tr>
+</table>
+<div class="ok"><b>Before the first power-up</b>, with the MCB OFF, check with a multimeter (continuity): L to N on the supply terminals shows no short; earth terminal to the pump body shows continuity; F1 bottom to S1 13 and relay NO to KM A1 show continuity; TB1-3 to TB1-4 shows continuity. Then follow the test steps in section 10.</div>
+
+<!-- ============================================================ -->
+<h2 class="pb">7. Sensor mounting and calibration</h2>
+
+<figure>
+<svg viewBox="0 0 760 400">
+  <defs><marker id="a6" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3e4c59"/></marker></defs>
+  <rect x="252" y="230" width="376" height="138" fill="#cfe8fb"/>
+  <path d="M252 230 H628" stroke="#1d70b8" stroke-width="1.6"/>
+  <path d="M250 60 V370 H630 V60" stroke="#3e4c59" stroke-width="3" fill="none"/>
+  <path d="M240 60 H640" stroke="#3e4c59" stroke-width="4"/>
+  <rect x="425" y="40" width="30" height="22" fill="#1d70b8"/>
+  <path d="M415 34 H465" stroke="#3e4c59" stroke-width="3"/>
+  <text x="410" y="30" class="xs e">sensor (face down) + small hood</text>
+  <rect x="400" y="62" width="80" height="12" fill="#fde2e2"/>
+  <text x="396" y="72" class="xs e">blind zone 3 cm</text>
+  <path d="M440 62 L343 230 M440 62 L537 230" class="thin dash"/>
+  <text x="352" y="150" class="xs e">60&deg; beam</text>
+
+  <path d="M252 120 H628" stroke="#2e7d32" stroke-width="1.5" stroke-dasharray="6 4"/>
+  <path d="M252 340 H628" stroke="#c62828" stroke-width="1.5" stroke-dasharray="6 4"/>
+  <text x="636" y="124" class="xs" fill="#2e7d32" font-weight="600">100 %</text>
+  <text x="636" y="344" class="xs" fill="#c62828" font-weight="600">0 %</text>
+  <text x="620" y="224" class="xs e">current water surface</text>
+
+  <path d="M300 64 V118" class="ln" marker-start="url(#a6)" marker-end="url(#a6)"/>
+  <text x="306" y="98" class="xs">&ge;25&ndash;30 cm</text>
+
+  <path d="M612 20 V95" stroke="#7b8794" stroke-width="7"/><text x="622" y="24" class="xs">inlet pipe</text>
+  <rect x="630" y="96" width="50" height="10" fill="#9aa5b1"/><text x="686" y="105" class="xs">overflow</text>
+  <rect x="210" y="350" width="40" height="10" fill="#9aa5b1"/><text x="205" y="378" class="xs e">outlet</text>
+  <path d="M457 85 H608" class="ln" marker-start="url(#a6)" marker-end="url(#a6)"/>
+  <text x="532" y="81" class="xs c">&ge;20 cm</text>
+
+  <path d="M100 62 H425" class="thin dash"/>
+  <path d="M225 120 H252 M165 230 H252 M105 340 H252" class="thin dash"/>
+  <path d="M230 64 V118" class="ln" marker-start="url(#a6)" marker-end="url(#a6)"/><text x="224" y="95" class="xs e" font-weight="600">D_full</text>
+  <path d="M170 64 V228" class="ln" marker-start="url(#a6)" marker-end="url(#a6)"/><text x="164" y="150" class="xs e" font-weight="600">D (now)</text>
+  <path d="M110 64 V338" class="ln" marker-start="url(#a6)" marker-end="url(#a6)"/><text x="104" y="290" class="xs e" font-weight="600">D_empty</text>
+</svg>
+<figcaption>Figure 7. Side view: sensor position, blind zone and the three distances. All distances are measured from the sensor face.</figcaption>
+</figure>
+
+<ul>
+  <li>Mount the sensor <b>facing straight down</b> and level, through a hole in the lid with a cable gland. A small hood or cap above it stops condensation dripping onto the face.</li>
+  <li>Keep the sensor face at least 25&ndash;30 cm above the 100 % line. The A02YYUW's blind zone is only 3 cm, but splashes and condensation near the top cause false readings.</li>
+  <li>Keep it at least 20 cm from the walls, the inlet pipe and the overflow pipe. Aim it away from the splash of the inlet.</li>
+  <li>Fix the sensor in its final position <b>before</b> calibrating. Moving it changes both calibration distances.</li>
+</ul>
+
+<h3>Level formula</h3>
+<p style="text-align:center; font-size:11pt"><b>level % = (D_empty &minus; D) / (D_empty &minus; D_full) &times; 100</b>, then clamp to 0&ndash;100</p>
+<p><b>Worked example.</b> The water can be 1.2 m deep between the 0 % and 100 % lines, and the sensor face is 30 cm above the 100 % line. So D_full = 300 mm and D_empty = 300 + 1200 = 1500 mm. If the sensor reads 900 mm: (1500 &minus; 900) / (1500 &minus; 300) &times; 100 = <b>50 %</b>.</p>
+
+<h3>Calibration steps</h3>
+<table>
+  <tr><th style="width:6%">Step</th><th>Action</th></tr>
+  <tr><td>1</td><td>Fix the sensor in its final position, power the system, and open the Arduino Serial Monitor at 115200 baud. Each line shows <code>dist=&hellip; mm</code>.</td></tr>
+  <tr><td>2</td><td><b>D_full:</b> when the tank is at the level you call 100 % (just below the overflow), note the distance. Or measure it with a tape from the sensor face down to that line.</td></tr>
+  <tr><td>3</td><td><b>D_empty:</b> you don't need to drain the tank. D_empty = D_full + the depth between your 100 % line and your 0 % line (keep 0 % a little above the outlet pipe).</td></tr>
+  <tr><td>4</td><td>Enter both values as <code>D_FULL_MM</code> and <code>D_EMPTY_MM</code>, upload again, and check the reading against a tape at two or three levels.</td></tr>
+</table>
+
+<!-- ============================================================ -->
+<h2 class="pb">8. Firmware</h2>
+<p>The full sketch is in <code>firmware/water_tank_controller/water_tank_controller.ino</code> and printed in Appendix A. It compiles for the ESP32 board package 2.x and 3.x; it was test-compiled on core 3.3.8 with PubSubClient 2.8.</p>
+
+<figure style="max-width:150mm; margin-left:auto; margin-right:auto">
+<svg viewBox="0 0 760 660">
+  <defs><marker id="a7" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3e4c59"/></marker></defs>
+  <rect x="100" y="10" width="300" height="38" rx="19" class="bxf"/><text x="250" y="34" class="s c" fill="#1f2933">Power-up: relay OFF, 60 s start delay</text>
+  <path d="M250 48 V68" class="ln" marker-end="url(#a7)"/>
+  <rect x="100" y="70" width="300" height="40" rx="4" class="bx"/><text x="250" y="95" class="s c" fill="#1f2933">Read sensor: 9 frames (max 2.5 s), median</text>
+  <path d="M250 110 V128" class="ln" marker-end="url(#a7)"/>
+  <polygon points="250,130 400,157 250,184 100,157" class="bx"/><text x="250" y="161" class="s c" fill="#1f2933">5 or more valid readings?</text>
+  <path d="M400 157 H478" class="ln" marker-end="url(#a7)"/><text x="420" y="150" class="xs">No</text>
+  <rect x="480" y="140" width="260" height="34" rx="4" fill="#fdeeee" stroke="#c62828"/><text x="610" y="161" class="s c" fill="#1f2933">SENSOR FAULT: pump OFF</text>
+  <path d="M250 184 V200" class="ln" marker-end="url(#a7)"/><text x="258" y="197" class="xs">Yes</text>
+  <rect x="100" y="202" width="300" height="38" rx="4" class="bx"/><text x="250" y="226" class="s c" fill="#1f2933">Level % from D_empty / D_full</text>
+  <path d="M250 240 V256" class="ln" marker-end="url(#a7)"/>
+  <polygon points="250,258 400,285 250,312 100,285" class="bx"/><text x="250" y="289" class="s c" fill="#1f2933">Max-run / dry-run fault latched?</text>
+  <path d="M400 285 H478" class="ln" marker-end="url(#a7)"/><text x="420" y="278" class="xs">Yes</text>
+  <rect x="480" y="268" width="260" height="34" rx="4" fill="#fdeeee" stroke="#c62828"/><text x="610" y="289" class="s c" fill="#1f2933">Pump OFF until RESET command</text>
+  <path d="M250 312 V328" class="ln" marker-end="url(#a7)"/><text x="258" y="325" class="xs">No</text>
+  <polygon points="250,330 400,357 250,384 100,357" class="bx"/><text x="250" y="361" class="s c" fill="#1f2933">Level at or above 95 %?</text>
+  <path d="M400 357 H478" class="ln" marker-end="url(#a7)"/><text x="420" y="350" class="xs">Yes</text>
+  <rect x="480" y="340" width="260" height="34" rx="4" fill="#fdeeee" stroke="#c62828"/><text x="610" y="361" class="s c" fill="#1f2933">Pump OFF, cancel manual request</text>
+  <path d="M250 384 V400" class="ln" marker-end="url(#a7)"/><text x="258" y="397" class="xs">No</text>
+  <polygon points="250,402 400,429 250,456 100,429" class="bx"/><text x="250" y="433" class="s c" fill="#1f2933">Manual ON request?</text>
+  <path d="M400 429 H478" class="ln" marker-end="url(#a7)"/><text x="420" y="422" class="xs">Yes</text>
+  <rect x="480" y="412" width="260" height="34" rx="4" fill="#edf7ee" stroke="#2e7d32"/><text x="610" y="433" class="s c" fill="#1f2933">Pump ON (after 60 s rest)</text>
+  <path d="M250 456 V472" class="ln" marker-end="url(#a7)"/><text x="258" y="469" class="xs">No</text>
+  <polygon points="250,474 410,505 250,536 90,505" class="bx"/><text x="250" y="501" class="s c" fill="#1f2933">Auto mode AND (level &le; 20 %</text><text x="250" y="515" class="s c" fill="#1f2933">OR already running)?</text>
+  <path d="M410 505 H478" class="ln" marker-end="url(#a7)"/><text x="425" y="498" class="xs">Yes</text>
+  <rect x="480" y="488" width="260" height="34" rx="4" fill="#edf7ee" stroke="#2e7d32"/><text x="610" y="509" class="s c" fill="#1f2933">Pump ON (after 60 s rest)</text>
+  <path d="M250 536 V552" class="ln" marker-end="url(#a7)"/><text x="258" y="549" class="xs">No: pump OFF</text>
+  <rect x="100" y="554" width="300" height="40" rx="4" class="bx"/><text x="250" y="570" class="xs c" fill="#1f2933">Run &gt; 45 min &rarr; MAX-RUN fault</text><text x="250" y="585" class="xs c" fill="#1f2933">Rise &lt; 2 % in 5 min &rarr; DRY-RUN fault</text>
+  <path d="M250 594 V610" class="ln" marker-end="url(#a7)"/>
+  <rect x="100" y="612" width="300" height="36" rx="4" class="bx"/><text x="250" y="634" class="xs c" fill="#1f2933">Reconnect Wi-Fi / MQTT if needed, publish every 3 s</text>
+  <path d="M100 630 H60 V90 H98" class="ln" marker-end="url(#a7)"/>
+  <path d="M740 157 H752 V574 H402 M740 285 H752 M740 357 H752 M740 429 H752 M740 505 H752" class="ln"/>
+  <path d="M752 574 H404" class="ln" marker-end="url(#a7)"/>
+</svg>
+<figcaption>Figure 8. One pass of the main loop (about once a second).</figcaption>
+</figure>
+
+<h3>Safety rules</h3>
+<table>
+  <tr><th>Condition</th><th>Action</th></tr>
+  <tr><td>Fewer than 5 valid readings in 2.5 s</td><td>Pump OFF (sensor fault). Clears itself when readings return.</td></tr>
+  <tr><td>Level &ge; 95 %</td><td>Pump OFF and the manual request is cancelled</td></tr>
+  <tr><td>Pump has run longer than 45 min</td><td>Pump OFF, <b>MAX-RUN</b> fault latched until RESET</td></tr>
+  <tr><td>Level rose less than 2 % in any 5 min of running</td><td>Pump OFF, <b>DRY-RUN</b> fault latched until RESET</td></tr>
+  <tr><td>Auto mode, level &le; 20 %</td><td>Pump ON until 95 %</td></tr>
+  <tr><td>Manual ON from the app</td><td>Pump ON until 95 %, a fault, or an OFF command</td></tr>
+  <tr><td>MQTT connection lost</td><td>Manual request cancelled; auto mode keeps working locally</td></tr>
+  <tr><td>Pump stopped less than 60 s ago, or just powered up</td><td>A start waits until 60 s have passed (protects the motor)</td></tr>
+  <tr><td>Firmware hangs</td><td>Watchdog resets the ESP32 after 30 s; the relay is OFF during the reset</td></tr>
+</table>
+<p>An OFF command from the app stops the pump. In auto mode it starts again the next time the level falls to 20 %. To keep it off, switch auto mode OFF, or turn S1 to OFF.</p>
+
+<h3 class="pb">Settings to adjust (top of the sketch)</h3>
+<table>
+  <tr><th>Setting</th><th>Default</th><th>How to choose it</th></tr>
+  <tr><td><code>D_EMPTY_MM</code>, <code>D_FULL_MM</code></td><td>1500, 300</td><td>From the calibration steps in section 7</td></tr>
+  <tr><td><code>ON_BELOW</code>, <code>OFF_ABOVE</code></td><td>20, 95</td><td>Start and stop levels in %. Keep a wide gap so the pump doesn't cycle.</td></tr>
+  <tr><td><code>MAX_RUN_MS</code></td><td>45 min</td><td>Time one real fill from 20 % to 95 %, then use 1.5 &times; that time</td></tr>
+  <tr><td><code>RISE_WINDOW_MS</code>, <code>MIN_RISE</code></td><td>5 min, 2 %</td><td>In a normal fill the level must rise by at least MIN_RISE in every window. This is the only dry-run protection, so keep the window as short as your fill allows. For a very large tank with a slow pump, lengthen it.</td></tr>
+  <tr><td><code>MIN_OFF_MS</code></td><td>60 s</td><td>Minimum rest between pump starts, also applied after power-up</td></tr>
+  <tr><td><code>CONTROLLER_PCB</code></td><td>1</td><td><b>1</b> = the controller PCB (relay on GPIO32, active HIGH; see the separate PCB build sheet). <b>0</b> = the relay-module wiring in this guide (GPIO23, active LOW).</td></tr>
+  <tr><td><code>MONO_PCB</code></td><td>0</td><td><b>1</b> on the monoblock board only. GPIO33 and GPIO25 read the door selector and the app shows AUTO, MANUAL, or OFF on topic <code>selector</code>. Leave at <b>0</b> for the submersible board.</td></tr>
+  <tr><td><code>RELAY_ON</code> / <code>RELAY_OFF</code></td><td>set by <code>CONTROLLER_PCB</code></td><td>With <code>CONTROLLER_PCB 0</code>, swap them only if your relay module is active-HIGH</td></tr>
+  <tr><td><code>TOPIC</code>, <code>DEVICE_ID</code></td><td>CHANGE_ME</td><td>Use your own unique names, for example <code>home/sharma/tank/</code></td></tr>
+</table>
+
+<h3>MQTT topics (prefix <code>home/&lt;name&gt;/tank/</code>)</h3>
+<table>
+  <tr><th>Topic</th><th>Direction</th><th>Values</th></tr>
+  <tr><td><code>status</code></td><td>ESP32 &rarr; app (retained)</td><td><code>online</code> / <code>offline</code> (offline is sent automatically by the broker if the ESP32 drops off)</td></tr>
+  <tr><td><code>level</code>, <code>distance</code></td><td>ESP32 &rarr; app (retained)</td><td>Level in % with one decimal, distance in mm; <code>-1</code> on sensor fault</td></tr>
+  <tr><td><code>pump</code>, <code>auto</code></td><td>ESP32 &rarr; app (retained)</td><td><code>ON</code> / <code>OFF</code></td></tr>
+  <tr><td><code>selector</code></td><td>ESP32 &rarr; app (retained)</td><td>Monoblock board only: <code>AUTO</code>, <code>MANUAL</code>, <code>OFF</code>, or <code>INVALID</code> if both sense wires are grounded</td></tr>
+  <tr><td><code>fault</code></td><td>ESP32 &rarr; app (retained)</td><td><code>none</code>, <code>sensor</code>, <code>max_run</code>, <code>dry_run</code></td></tr>
+  <tr><td><code>pump/set</code></td><td>app &rarr; ESP32</td><td><code>ON</code> / <code>OFF</code></td></tr>
+  <tr><td><code>auto/set</code></td><td>app &rarr; ESP32</td><td><code>ON</code> / <code>OFF</code> (remembered after a reboot)</td></tr>
+  <tr><td><code>reset</code></td><td>app &rarr; ESP32</td><td><code>RESET</code>: clears a MAX-RUN or DRY-RUN fault</td></tr>
+</table>
+<div class="note">Send commands with <b>retain OFF</b> in the app. The firmware also clears any retained command when it connects, so an old "ON" can't restart the pump after a power cut.</div>
+
+<h3>Uploading</h3>
+<ol>
+  <li>Install Arduino IDE 2. In Boards Manager install <b>esp32 by Espressif Systems</b>. In Library Manager install <b>PubSubClient</b> by Nick O'Leary.</li>
+  <li>Open <code>water_tank_controller.ino</code> and fill in the USER SETTINGS: Wi-Fi, broker host and login, <code>TOPIC</code>, <code>DEVICE_ID</code> and the calibration values.</li>
+  <li>Select board <b>ESP32 Dev Module</b> and your COM port, then Upload. Unplug the 5 V VIN supply while the board is on USB.</li>
+  <li>Open the Serial Monitor at 115200 baud. You should see one status line about every second.</li>
+</ol>
+
+<!-- ============================================================ -->
+<h2 class="pb">9. Broker and phone app setup</h2>
+<h3>HiveMQ Cloud (free)</h3>
+<ol>
+  <li>Sign up at hivemq.com/cloud and create a free <b>Serverless</b> cluster.</li>
+  <li>Under <b>Access Management</b>, create two logins with publish and subscribe permission: <code>tank-device</code> for the ESP32 and <code>tank-phone</code> for the app.</li>
+  <li>Copy the cluster URL (like <code>abc123.s1.eu.hivemq.cloud</code>). The port is <b>8883</b> with TLS. Put the URL, <code>tank-device</code> and its password in the sketch, with <code>USE_TLS 1</code>.</li>
+</ol>
+<p>Prefer a local broker? Run Mosquitto on a Raspberry Pi or Home Assistant, set <code>USE_TLS 0</code> and port 1883, and use a VPN (for example Tailscale) for remote access. <b>Never forward router ports to the ESP32.</b></p>
+
+<h3>IoT MQTT Panel (Android)</h3>
+<table>
+  <tr><th>Panel</th><th>Topic(s)</th><th>Settings</th></tr>
+  <tr><td>Connection</td><td>&mdash;</td><td>Host = cluster URL, port 8883, TLS/SSL on, user <code>tank-phone</code>, unique client ID</td></tr>
+  <tr><td>Gauge "Tank level"</td><td>subscribe <code>&hellip;/level</code></td><td>Range 0&ndash;100, unit %</td></tr>
+  <tr><td>Switch "Pump"</td><td>publish <code>&hellip;/pump/set</code>, subscribe <code>&hellip;/pump</code></td><td>Payload ON / OFF, retain off</td></tr>
+  <tr><td>Switch "Auto mode"</td><td>publish <code>&hellip;/auto/set</code>, subscribe <code>&hellip;/auto</code></td><td>Payload ON / OFF, retain off. This is the software auto mode, not the door switch.</td></tr>
+  <tr><td>Text "Door switch"</td><td>subscribe <code>&hellip;/selector</code></td><td>Monoblock board only (<code>MONO_PCB 1</code>). Shows <code>AUTO</code>, <code>MANUAL</code>, or <code>OFF</code> from the physical selector.</td></tr>
+  <tr><td>Text "Fault" and "Status"</td><td>subscribe <code>&hellip;/fault</code>, <code>&hellip;/status</code></td><td>&mdash;</td></tr>
+  <tr><td>Button "Reset fault"</td><td>publish <code>&hellip;/reset</code></td><td>Payload RESET, retain off</td></tr>
+</table>
+<p>For push notifications (level below 15 %, fault not <code>none</code>, status <code>offline</code> for more than 5 minutes), use Home Assistant's MQTT integration with automations. It also gives you history graphs and works on iPhone.</p>
+
+<!-- ============================================================ -->
+<h2>10. Build order and test checklist</h2>
+<table>
+  <tr><th style="width:15%">Phase</th><th>What to do</th><th style="width:32%">Pass when</th></tr>
+  <tr><td>1. Bench sensor</td><td>ESP32 on USB, sensor through 1&ndash;2 m of CAT6 and TB1. Point it at the floor or a bucket of water.</td><td>Distance steady within a few mm. Unplug the white wire: <code>fault=sensor</code> within 3 s.</td></tr>
+  <tr><td>2. Relay</td><td>Wire the relay module (VCC 3V3, JD-VCC 5V). Use a multimeter on COM&ndash;NO, no mains yet.</td><td>Relay stays OFF at power-up, reset and upload, and follows the app switch.</td></tr>
+  <tr><td>3. Safety logic</td><td>Temporarily set <code>MAX_RUN_MS</code> = 2 min and <code>RISE_WINDOW_MS</code> = 1 min. Start the pump manually with the sensor aimed at a fixed target. Hold a hand close to the sensor (level above 95 %). Switch off Wi-Fi.</td><td>DRY-RUN fault after 1 min, which RESET clears. Pump OFF above 95 %. Manual run stops when MQTT drops. Restore the settings afterwards.</td></tr>
+  <tr><td>4. Mains box</td><td>Electrician connects the box to the pump's MCB in the DB and wires F1, HLK, contactor, S1, H1 and earth. Test with the pump disconnected first.</td><td>Switching off the DB MCB kills the whole box. S1 OFF: contactor never pulls in. S1 MAN: it pulls in. S1 AUTO: it follows the relay.</td></tr>
+  <tr><td>5. Tank</td><td>Mount the sensor, run the CAT6, calibrate.</td><td>0 %, 50 % and 100 % agree with a tape within about 2 cm.</td></tr>
+  <tr><td>6. Pump</td><td>Connect the pump. Let auto mode fill the tank from 20 %. Time the fill.</td><td>Starts at 20 %, stops at 95 %. Set <code>MAX_RUN_MS</code> to 1.5 &times; the fill time.</td></tr>
+  <tr><td>7. Soak test</td><td>Run for one week, with S1 within reach.</td><td>No false stops or resets, readings consistent.</td></tr>
+</table>
+
+<!-- ============================================================ -->
+<h2 class="pb">11. Troubleshooting</h2>
+<table>
+  <tr><th style="width:24%">Symptom</th><th style="width:33%">Likely cause</th><th>Fix</th></tr>
+  <tr><td><code>dist=-1</code>, fault "sensor" all the time</td><td>White and yellow swapped, white not on GPIO16, no 3.3 V at TB1-1, or a WROVER board</td><td>Check against the table in section 3. Measure 3.3 V at TB1-1. On WROVER, move to GPIO26.</td></tr>
+  <tr><td>Reading jumps around</td><td>Echoes from walls or the inlet pipe; splashing inlet; condensation</td><td>Move the sensor, add a hood. If it's still noisy, connect yellow to 3V3 instead of GND (processed mode, smoother but slower)</td></tr>
+  <tr><td>Stuck at one value</td><td>Water drop on the sensor face, or a bad joint in the junction box</td><td>Dry the face, fit a hood, re-make the joint</td></tr>
+  <tr><td>Always 0 % or 100 %</td><td>Calibration values wrong or swapped</td><td>D_EMPTY_MM must be larger than D_FULL_MM. Re-measure.</td></tr>
+  <tr><td>Relay never switches off</td><td>Relay VCC on 5 V with the JD-VCC jumper still fitted, or wrong RELAY_ON polarity</td><td>VCC to 3V3, JD-VCC to 5 V, jumper removed. Check RELAY_ON.</td></tr>
+  <tr><td>ESP32 resets when the contactor switches</td><td>Supply dip or switching noise</td><td>Fit C1 close to the ESP32, keep the K1 wires short and away from the ESP32, add an RC snubber (100 &Omega; + 0.1 &micro;F X2) across the contactor coil</td></tr>
+  <tr><td>MQTT never connects</td><td>Wrong host, port or login; TLS setting; duplicate DEVICE_ID</td><td>Port 8883 with USE_TLS 1 for HiveMQ Cloud. Use a unique DEVICE_ID. Check the login in Access Management.</td></tr>
+  <tr><td>DRY-RUN fault although water flows</td><td>The tank is large or the pump is slow, so 2 % in 5 min is too much</td><td>Lengthen RISE_WINDOW_MS or reduce MIN_RISE</td></tr>
+  <tr><td>MAX-RUN fault on a normal fill</td><td>Limit shorter than the real fill time</td><td>Time a fill again and set 1.5 &times;. If the fill really is slower than before, check for leaks, a blocked foot valve or a low sump.</td></tr>
+  <tr><td>Pump doesn't start right after power-up</td><td>The 60 s start delay</td><td>Normal. Wait one minute.</td></tr>
+</table>
+
+<h2>12. Safety and maintenance</h2>
+<ul>
+  <li>With no float switches, the sensor is the only thing that sees the water. Once a month, check the app's level against the real tank level and look at the sensor face for drops, dirt or insects.</li>
+  <li>If the pump circuit has an RCCB or ELCB in the DB, press its test button once a month. If it doesn't trip, replace it. If there is none, consider adding one.</li>
+  <li>A submersible is cooled by the water around it, so running dry damages it within minutes. The firmware stops the pump if the tank level doesn't rise for 5 minutes. If your borewell often runs low, ask your pump dealer about the dry-run protection available for your submersible's control box.</li>
+  <li>Every few months check the cable glands, the sensor face (condensation, insects, spider webs) and the tank junction box.</li>
+  <li>If the electronics fail, S1 in MAN runs the pump directly. Nothing stops it automatically in MAN, so stay nearby and switch back to OFF before the tank overflows.</li>
+  <li>Change the default passwords and topic names before going live. Anyone who knows your broker login and topics can switch your pump.</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2 class="pb">Appendix A. Firmware listing</h2>
+<pre>{{FIRMWARE}}</pre>
+
+</body>
+</html>

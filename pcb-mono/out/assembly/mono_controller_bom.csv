@@ -1,0 +1,20 @@
+﻿Comment,Designator,Footprint,LCSC Part #,Manufacturer,MPN,Qty
+Screw terminal 2P 5.08mm 24A 2.5mm2,"J1,J2",TerminalBlock_Phoenix_MKDS-3-2-5.08_1x02_P5.08mm_Horizontal,C474952,Cixi Kefa,KF128-5.08-2P-AA,2
+Screw terminal 2P 5.08mm 250V,J3,"TerminalBlock_Phoenix_MKDS-1,5-2-5.08_1x02_P5.08mm_Horizontal",C474952,Cixi Kefa,KF128-5.08-2P-AA,1
+Screw terminal 6P 5.08mm,J4,"TerminalBlock_Phoenix_MKDS-1,5-6-5.08_1x06_P5.08mm_Horizontal",C2974928,Cixi Kefa,KF127S-5.08-6P,1
+Screw terminal 4P 5.08mm,J5,"TerminalBlock_Phoenix_MKDS-1,5-4-5.08_1x04_P5.08mm_Horizontal",C2827883,DORABO,DB128L-5.08-4P-GN-S,1
+"Fuse holder 5x20mm, 22.5mm pitch",F1,Fuseholder_Cylinder-5x20mm_Schurter_0031_8201_Horizontal_Open,C3204125,Schurter,0031.8201,1
+Varistor 10D471K 300VAC,RV1,RV_Disc_D12mm_W4.2mm_P7.5mm,C317795,COV,10D471K,1
+HLK-10M05 230VAC to 5V 2A,PS1,Converter_ACDC_Hi-Link_HLK-10Mxx,C403745,Hi-Link,HLK-10M05,1
+T92P7D12-5 5VDC 2 form A PCB pins. Not the 12V coil.,K1,Relay_TE_T92,,TE Connectivity,T92P7D12-5,1
+IRLZ44N N-MOSFET TO-220,Q1,TO-220-3_Vertical,C38774,Infineon,IRLZ44NPBF,1
+1N4007 DO-41,D1,D_DO-41_SOD81_P10.16mm_Horizontal,C3011149,JUXING,1N4007,1
+100R 1/4W,R1,R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal,C119304,CCO,MF1/4W-100Ω±1% T,1
+100k 1/4W,R2,R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal,C119369,CCO,MF1/4W-100KΩ±1% T,1
+1k 1/4W,"R4,R5,RSA,RSM",R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal,C119324,CCO,MF1/4W-1KΩ±1% T,4
+330R 1/4W,R3,R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal,C119313,CCO,MF1/4W-330Ω±1% T,1
+LED red 3mm,"LED1,LED2",LED_D3.0mm,C331035,TOGIALED,TJ-L3FYTGHRMTCSFLC3R-A5,2
+1000uF 16V radial 10x16mm,C1,CP_Radial_D10.0mm_P5.00mm,C338175,Rubycon,16ZLH1000MEFC10X16,1
+100nF 50V X7R disc 5mm,C2,C_Disc_D5.0mm_W2.5mm_P5.00mm,C2167231,Vishay,K104K15X7RF5TH5,1
+Female header 1x15 2.54mm 8.5mm,J6,PinSocket_1x15_P2.54mm_Vertical,C2897378,HCTL,PM254-1-15-Z-8.5,1
+Female header 2x15 2.54mm 8.5mm,J7,PinSocket_2x15_P2.54mm_Vertical,C5337168,BOOMELE,2.54-2*15P,1

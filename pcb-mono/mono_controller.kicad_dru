@@ -1,0 +1,28 @@
+(version 1)
+
+# Motor nets stay 8 mm from the 5 V side. The relay's own listing is 8 mm through air.
+
+(rule "230 V tracks"
+  (condition "A.NetName == 'L_IN' || A.NetName == 'L_F' || A.NetName == 'N_IN' || A.NetName == 'L_OUT' || A.NetName == 'N_OUT'")
+  (constraint track_width (min 1mm)))
+
+# Earlier rules win. This one is first so a 5 V track beside a motor track
+# is held to 8 mm, on either copper layer.
+(rule "230 V to low voltage"
+  (condition "(A.NetName == 'L_IN' || A.NetName == 'L_F' || A.NetName == 'N_IN' || A.NetName == 'L_OUT' || A.NetName == 'N_OUT') && B.NetName != 'L_IN' && B.NetName != 'L_F' && B.NetName != 'N_IN' && B.NetName != 'L_OUT' && B.NetName != 'N_OUT'")
+  (constraint clearance (min 8mm))
+  (constraint creepage (min 8mm)))
+
+# Live and neutral may sit on opposite copper layers. The 1.6 mm core between
+# them is the insulation; the 2 mm rule is the surface gap on one layer.
+(rule "230 V to 230 V"
+  (condition "A.Layer == B.Layer && (A.NetName == 'L_IN' || A.NetName == 'L_F' || A.NetName == 'N_IN' || A.NetName == 'L_OUT' || A.NetName == 'N_OUT') && (B.NetName == 'L_IN' || B.NetName == 'L_F' || B.NetName == 'N_IN' || B.NetName == 'L_OUT' || B.NetName == 'N_OUT')")
+  (constraint clearance (min 2mm)))
+
+(rule "same layer spacing"
+  (condition "A.Layer == B.Layer && A.Type != 'Zone' && B.Type != 'Zone'")
+  (constraint clearance (min 0.2mm)))
+
+(rule "230 V to board edge"
+  (condition "A.NetName == 'L_IN' || A.NetName == 'L_F' || A.NetName == 'N_IN' || A.NetName == 'L_OUT' || A.NetName == 'N_OUT'")
+  (constraint edge_clearance (min 2mm)))
