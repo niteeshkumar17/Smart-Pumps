@@ -4,7 +4,8 @@ assembly_files.py <kicad-cli pos csv> <out dir>
 The pos csv comes from `kicad-cli pcb export pos --format csv --units mm --side both`. KiCad reports
 the footprint anchor, which for these parts is a pin, while JLCPCB places the centre of the part
 there. The centre written below is the middle of each part's pins, in the same coordinate frame.
-Part numbers are LCSC / JLCPCB numbers, checked October 2026.
+Part numbers are LCSC / JLCPCB numbers, checked October 2026. K1 and J5 are the in-stock parts
+JLCPCB fitted on the October 2026 order.
 """
 import collections
 import csv
@@ -18,12 +19,12 @@ PARTS = {   # ref: (comment, manufacturer, MPN, LCSC)
     "J3": ("Screw terminal 2P 5.08mm 250V", "Cixi Kefa", "KF128-5.08-2P-AA", "C474952"),
     "J4": ("Screw terminal 2P 5.08mm 250V", "Cixi Kefa", "KF128-5.08-2P-AA", "C474952"),
     "J2": ("Screw terminal 3P 5.08mm 250V", "Cixi Kefa", "KF128-5.08-3P-AA", "C474953"),
-    "J5": ("Screw terminal 4P 5.08mm", "Cixi Kefa", "KF128-5.08-4P", "C5296490"),
+    "J5": ("Screw terminal 4P 5.08mm", "DORABO", "DB128L-5.08-4P-GN-S", "C2827883"),
     "F1": ("Fuse holder 5x20mm, 22.5mm pitch", "Schurter", "0031.8201", "C3204125"),
     "RV1": ("Varistor 10D471K 300VAC", "COV", "10D471K", "C317795"),
     "PS1": ("HLK-5M05 230VAC to 5V 1A", "Hi-Link", "HLK-5M05", "C209907"),
-    "K1": ("Relay G5NB-1A-E 5VDC", "Omron", "G5NB-1A-E DC5", "C1524500"),
-    "Q1": ("BC547B NPN, leads formed to 2.54mm", "LGE", "BC547B", "C713613"),
+    "K1": ("Relay G5NB-1A-E 5VDC", "Omron", "G5NB-1A-E-DC5V", "C48746"),
+    "Q1": ("BC547B NPN, flat face toward relay K1", "LGE", "BC547B", "C713613"),
     "D1": ("1N4148", "Changzhou Starsea", "1N4148", "C85057"),
     "R1": ("1k 1/4W", "CCO", "MF1/4W-1K\u03a9\u00b11% T", "C119324"),
     "R4": ("1k 1/4W", "CCO", "MF1/4W-1K\u03a9\u00b11% T", "C119324"),

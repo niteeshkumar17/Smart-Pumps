@@ -121,6 +121,24 @@ def line(x1, y1, x2, y2, layer=pcbnew.F_SilkS, width=0.16):
     board.Add(s)
 
 
+def arc(cx, cy, r, a0, a1, layer=pcbnew.F_SilkS, width=0.16):
+    """Arc from angle a0 to a1 in degrees, measured clockwise from +x (y points down)."""
+    def at(a):
+        return P(cx + r * math.cos(math.radians(a)), cy + r * math.sin(math.radians(a)))
+
+    s = pcbnew.PCB_SHAPE(board)
+    s.SetShape(pcbnew.SHAPE_T_ARC)
+    s.SetArcGeometry(at(a0), at((a0 + a1) / 2), at(a1))
+    s.SetLayer(layer)
+    s.SetWidth(mm(width))
+    board.Add(s)
+
+
+def plus(x, y, arm=0.5):
+    line(x - arm, y, x + arm, y, width=0.2)
+    line(x, y - arm, x, y + arm, width=0.2)
+
+
 def _seg_point(x1, y1, x2, y2, px, py):
     dx, dy = x2 - x1, y2 - y1
     L2 = dx * dx + dy * dy
@@ -624,6 +642,17 @@ silk("ANTENNA ->", 89, 77.8, 0.9)
 silk("J7 takes both ESP32 widths (25.4 or 22.86 mm)", 76, 71.8, 0.8)
 silk("NK Smart Pumps", 28, 68, 1.4, bold=True)
 silk("HLK-5M05 | G5NB relay | ESP32", 28, 72.6, 1.0)
+silk("REV 1.1", 28, 75.4, 0.9)
+
+# Polarity marks. The library outlines of Q1 and the LEDs pass within 0.4 mm of
+# their pads, so pull_silk() strips them; these are drawn far enough out to stay.
+# Q1: the round back of the TO-92 faces the ESP32, the flat face the relay.
+arc(87.46, 52.0, 2.6, 55, 125)
+for txt, x in [("E", 84.92), ("B", 87.46), ("C", 90.0)]:
+    silk(txt, x, 49.0, 0.8)
+# LED anodes (long leg).
+plus(12.54, 53.6)
+plus(93.46, 48.0)
 
 # Mask opening 0.10 mm past the copper, so a polygon pad cannot stick out of its opening.
 design = board.GetDesignSettings()

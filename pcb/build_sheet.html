@@ -194,11 +194,13 @@
 <ol>
   <li>On <b>jlcpcb.com</b>, upload <code>pcb\out\tank_controller_gerbers.zip</code> and choose the same board settings as in Option B, quantity 5.</li>
   <li>Switch on <b>PCB Assembly</b>: Economic, top side, assembled quantity 2 or 5 (2 is cheaper, and the other 3 boards come bare as spares). Leave tooling holes at &ldquo;Added by JLCPCB&rdquo;.</li>
-  <li>Upload <code>pcb\out\assembly\tank_controller_bom.csv</code> as the BOM and <code>pcb\out\assembly\tank_controller_cpl.csv</code> as the CPL (placement) file. All 17 lines should match a part by its LCSC number. If one is out of stock, pick the suggested equivalent with the same package and value, and for J5 and the relay K1 accept only the same footprint.</li>
-  <li>In the placement preview, check that the polarised parts sit the way the silkscreen shows: the LED flat sides, D1's stripe at <b>K</b>, C1's &minus; stripe away from <b>+</b> and Q1's flat face. Rotate any that are wrong in the preview. (The HLK, relay and fuse holder only fit one way.)</li>
+  <li>Upload <code>pcb\out\assembly\tank_controller_bom.csv</code> as the BOM and <code>pcb\out\assembly\tank_controller_cpl.csv</code> as the CPL (placement) file. All 17 lines should match a part by its LCSC number. The relay (C48746) and the 4-way terminal (C2827883) are the parts JLCPCB fitted on the October 2026 order. If one is out of stock, pick the suggested equivalent with the same package and value, and for J5 and the relay K1 accept only the same footprint.</li>
+  <li>In the placement preview, check the polarised parts against the silkscreen. Then paste this into the order remark, and use the same text if the factory asks you to confirm the 3D render (do not just answer &ldquo;yes&rdquo;):
+    <div class="note">Through-hole polarity: please follow the board silkscreen. Q1 BC547: flat face toward the relay K1 and R5, round side toward the ESP32, legs as printed E B C. LED1, LED2: long leg (anode) in the hole marked +. C1: + lead in the hole marked +, stripe toward the ESP32. D1: black stripe at the end marked K.</div></li>
   <li>Order. The quote shows the exact price; expect roughly $110&ndash;150 before shipping and customs for 5 boards with 2 assembled (most of it is fixed per-order fees, so assembling all 5 costs only about $20 more). Delivered to India this is about &#8377;12,000&ndash;18,000. Indian assemblers (Lion Circuits, PCB Power, Circuitwala) accept the same three files for a quote, with no customs.</li>
 </ol>
 <div class="note"><b>Not fitted by the factory:</b> the 1 A slow-blow 5&times;20 mm fuse (push it into F1 yourself), the ESP32 and the M3 standoffs. Before the first power-up, still do the stage 0 multimeter test in section 6.</div>
+<div class="warn"><b>Boards without &ldquo;REV 1.1&rdquo; on the silkscreen</b> (the October 2026 order): the silkscreen showed only a straight line for Q1, and the factory fitted it with its flat face toward the ESP32. The RELAY LED then glows faintly and the relay does not click. Unplug everything, desolder Q1 and turn it 180&deg; so the flat face points to R5; the middle leg stays in the middle hole.</div>
 <h3>Option B: bare board, you solder the parts</h3>
 <ol>
   <li>Upload <code>pcb\out\tank_controller_gerbers.zip</code> to a PCB maker. In India: Lion Circuits, PCB Power or Robu PCB (about &#8377;700&ndash;1,500 for 5 boards, 5&ndash;8 days). Abroad: JLCPCB or PCBWay (about $2 for the boards plus $15&ndash;25 shipping and customs, 10&ndash;15 days).</li>
@@ -209,7 +211,7 @@
 <h2>5. Soldering order (bare board only)</h2>
 <ol>
   <li><b>Flat parts first:</b> resistors R1&ndash;R5 (R1, R4, R5 are 1 k; R2 is 10 k; R3 is 330 &Omega;), then D1 with its black stripe at the end marked <b>K</b>.</li>
-  <li>LED1, LED2: short leg (flat side) into the <b>square</b> pad. Q1: flat face matches the silkscreen outline. C2, then C1 with its stripe (&minus;) away from the <b>+</b> mark.</li>
+  <li>LED1, LED2: long leg into the hole marked <b>+</b>. Q1: flat face (the printed side) toward the relay and R5, round side toward the ESP32, legs into the holes marked <b>E B C</b>. C2, then C1 with its <b>+</b> lead in the hole marked <b>+</b> (stripe toward the ESP32).</li>
   <li>Female headers J6 and J7. Plug the ESP32 into them while soldering, so they end up straight and at the right spacing; then take it out again.</li>
   <li>Screw terminals J1&ndash;J5 with the wire openings facing the board edge, then the fuse holder, RV1, K1 and finally the HLK-5M05. Use plenty of solder on the 230 V joints and terminals.</li>
   <li>Inspect the 230 V area with a magnifier: no solder bridges, no flux balls or wire strands between pads. Clean off flux with isopropyl alcohol.</li>

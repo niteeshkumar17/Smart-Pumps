@@ -1,12 +1,12 @@
 ﻿Comment,Designator,Footprint,LCSC Part #,Manufacturer,MPN,Qty
 Screw terminal 2P 5.08mm 250V,"J1,J3,J4","TerminalBlock_Phoenix_MKDS-1,5-2-5.08_1x02_P5.08mm_Horizontal",C474952,Cixi Kefa,KF128-5.08-2P-AA,3
 Screw terminal 3P 5.08mm 250V,J2,"TerminalBlock_Phoenix_MKDS-1,5-3-5.08_1x03_P5.08mm_Horizontal",C474953,Cixi Kefa,KF128-5.08-3P-AA,1
-Screw terminal 4P 5.08mm,J5,"TerminalBlock_Phoenix_MKDS-1,5-4-5.08_1x04_P5.08mm_Horizontal",C5296490,Cixi Kefa,KF128-5.08-4P,1
+Screw terminal 4P 5.08mm,J5,"TerminalBlock_Phoenix_MKDS-1,5-4-5.08_1x04_P5.08mm_Horizontal",C2827883,DORABO,DB128L-5.08-4P-GN-S,1
 "Fuse holder 5x20mm, 22.5mm pitch",F1,Fuseholder_Cylinder-5x20mm_Schurter_0031_8201_Horizontal_Open,C3204125,Schurter,0031.8201,1
 Varistor 10D471K 300VAC,RV1,RV_Disc_D12mm_W4.2mm_P7.5mm,C317795,COV,10D471K,1
 HLK-5M05 230VAC to 5V 1A,PS1,Converter_ACDC_Hi-Link_HLK-5Mxx,C209907,Hi-Link,HLK-5M05,1
-Relay G5NB-1A-E 5VDC,K1,Relay_SPST_Omron_G5NB,C1524500,Omron,G5NB-1A-E DC5,1
-"BC547B NPN, leads formed to 2.54mm",Q1,TO-92_Inline_Wide,C713613,LGE,BC547B,1
+Relay G5NB-1A-E 5VDC,K1,Relay_SPST_Omron_G5NB,C48746,Omron,G5NB-1A-E-DC5V,1
+"BC547B NPN, flat face toward relay K1",Q1,TO-92_Inline_Wide,C713613,LGE,BC547B,1
 1N4148,D1,D_DO-35_SOD27_P7.62mm_Horizontal,C85057,Changzhou Starsea,1N4148,1
 1k 1/4W,"R1,R4,R5",R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal,C119324,CCO,MF1/4W-1KΩ±1% T,3
 10k 1/4W,R2,R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal,C119347,CCO,MF1/4W-10KΩ±1% T,1
